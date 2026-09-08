@@ -11,6 +11,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.bhavyachahal.aiqa.specification.model.ApiParameter;
+import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.parameters.Parameter;
+import io.swagger.v3.oas.models.media.Schema;
+
 public class OpenApiSpecificationParser {
 
     public ApiSpecification parse(String content, String format) {
@@ -69,53 +74,100 @@ public class OpenApiSpecificationParser {
 
         openAPI.getPaths().forEach((path, pathItem) -> {
 
-            if (pathItem.getGet() != null) {
-                endpoints.add(createEndpoint(
-                        specificationId,
-                        path,
-                        "GET",
-                        pathItem.getGet().getSummary()
-                ));
-            }
+            addEndpoint(
+                    endpoints,
+                    specificationId,
+                    path,
+                    "GET",
+                    pathItem.getGet()
+            );
 
-            if (pathItem.getPost() != null) {
-                endpoints.add(createEndpoint(
-                        specificationId,
-                        path,
-                        "POST",
-                        pathItem.getPost().getSummary()
-                ));
-            }
+            addEndpoint(
+                    endpoints,
+                    specificationId,
+                    path,
+                    "POST",
+                    pathItem.getPost()
+            );
 
-            if (pathItem.getPut() != null) {
-                endpoints.add(createEndpoint(
-                        specificationId,
-                        path,
-                        "PUT",
-                        pathItem.getPut().getSummary()
-                ));
-            }
+            addEndpoint(
+                    endpoints,
+                    specificationId,
+                    path,
+                    "PUT",
+                    pathItem.getPut()
+            );
 
-            if (pathItem.getDelete() != null) {
-                endpoints.add(createEndpoint(
-                        specificationId,
-                        path,
-                        "DELETE",
-                        pathItem.getDelete().getSummary()
-                ));
-            }
+            addEndpoint(
+                    endpoints,
+                    specificationId,
+                    path,
+                    "DELETE",
+                    pathItem.getDelete()
+            );
 
-            if (pathItem.getPatch() != null) {
-                endpoints.add(createEndpoint(
-                        specificationId,
-                        path,
-                        "PATCH",
-                        pathItem.getPatch().getSummary()
-                ));
-            }
+            addEndpoint(
+                    endpoints,
+                    specificationId,
+                    path,
+                    "PATCH",
+                    pathItem.getPatch()
+            );
         });
 
         return endpoints;
+    }
+
+    private void addEndpoint(
+            List<ApiEndpoint> endpoints,
+            UUID specificationId,
+            String path,
+            String method,
+            Operation operation) {
+
+        if (operation == null) {
+            return;
+        }
+
+        ApiEndpoint endpoint = createEndpoint(
+                specificationId,
+                path,
+                method,
+                operation.getSummary()
+        );
+
+        if (operation.getParameters() != null) {
+
+            List<ApiParameter> parameters =
+                    operation.getParameters()
+                            .stream()
+                            .map(this::toApiParameter)
+                            .toList();
+
+            endpoint.setParameters(parameters);
+        }
+
+        endpoints.add(endpoint);
+    }
+
+    private ApiParameter toApiParameter(Parameter parameter) {
+
+        String type = "unknown";
+
+        if (parameter.getSchema() != null) {
+            Schema<?> schema = parameter.getSchema();
+
+            if (schema.getType() != null) {
+                type = schema.getType();
+            }
+        }
+
+        return new ApiParameter(
+                parameter.getName(),
+                parameter.getIn(),
+                Boolean.TRUE.equals(parameter.getRequired()),
+                type
+        );
     }
 
     private ApiEndpoint createEndpoint(

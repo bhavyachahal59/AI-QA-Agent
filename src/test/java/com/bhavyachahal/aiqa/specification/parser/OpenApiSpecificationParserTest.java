@@ -1,6 +1,7 @@
 package com.bhavyachahal.aiqa.specification.parser;
 
 import com.bhavyachahal.aiqa.specification.model.ApiEndpoint;
+import com.bhavyachahal.aiqa.specification.model.ApiParameter;
 import com.bhavyachahal.aiqa.specification.model.ApiSpecification;
 import org.junit.jupiter.api.Test;
 
@@ -41,6 +42,22 @@ class OpenApiSpecificationParserTest {
 
         List<ApiEndpoint> endpoints =
                 parser.parseEndpoints(content, specification.getId());
+        ApiEndpoint userByIdEndpoint = endpoints.stream()
+                .filter(endpoint ->
+                        endpoint.getMethod().equals("GET")
+                                && endpoint.getPath().equals("/users/{id}"))
+                .findFirst()
+                .orElseThrow();
+
+        assertEquals(1, userByIdEndpoint.getParameters().size());
+
+        ApiParameter idParameter =
+                userByIdEndpoint.getParameters().get(0);
+
+        assertEquals("id", idParameter.getName());
+        assertEquals("path", idParameter.getLocation());
+        assertTrue(idParameter.isRequired());
+        assertEquals("integer", idParameter.getType());
 
         assertEquals(4, endpoints.size());
 

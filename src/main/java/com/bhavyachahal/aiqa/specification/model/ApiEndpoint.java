@@ -1,6 +1,8 @@
 package com.bhavyachahal.aiqa.specification.model;
 
 import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ApiEndpoint {
 
@@ -9,6 +11,7 @@ public class ApiEndpoint {
     private String path;
     private String method;
     private String summary;
+    private List<ApiParameter> parameters = new ArrayList<>();
 
     public ApiEndpoint() {
     }
@@ -64,5 +67,13 @@ public class ApiEndpoint {
 
     public void setSummary(String summary) {
         this.summary = summary;
+    }
+
+    public List<ApiParameter> getParameters() {
+        return parameters;
+    }
+
+    public void setParameters(List<ApiParameter> parameters) {
+        this.parameters = parameters;
     }
 }
