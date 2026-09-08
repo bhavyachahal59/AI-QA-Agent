@@ -3,6 +3,8 @@ package com.bhavyachahal.aiqa.specification.model;
 import java.util.UUID;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ApiEndpoint {
 
@@ -13,6 +15,7 @@ public class ApiEndpoint {
     private String summary;
     private List<ApiParameter> parameters = new ArrayList<>();
     private ApiRequestBody requestBody;
+    private List<ApiResponse> responses = new ArrayList<>();
 
     public ApiEndpoint() {
     }
@@ -84,5 +87,13 @@ public class ApiEndpoint {
 
     public void setRequestBody(ApiRequestBody requestBody) {
         this.requestBody = requestBody;
+    }
+
+    public List<ApiResponse> getResponses() {
+        return responses;
+    }
+
+    public void setResponses(List<ApiResponse> responses) {
+        this.responses = responses;
     }
 }

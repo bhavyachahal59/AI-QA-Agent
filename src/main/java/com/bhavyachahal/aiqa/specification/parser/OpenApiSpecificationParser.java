@@ -17,6 +17,8 @@ import io.swagger.v3.oas.models.media.Schema;
 import com.bhavyachahal.aiqa.specification.model.ApiRequestBody;
 import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.parameters.RequestBody;
+import com.bhavyachahal.aiqa.specification.model.ApiResponse;
+import io.swagger.v3.oas.models.responses.ApiResponses;
 
 public class OpenApiSpecificationParser {
 
@@ -154,7 +156,64 @@ public class OpenApiSpecificationParser {
             );
         }
 
+        if (operation.getResponses() != null) {
+            List<ApiResponse> responses =
+                    operation.getResponses()
+                            .entrySet()
+                            .stream()
+                            .map(entry ->
+                                    toApiResponse(
+                                            entry.getKey(),
+                                            entry.getValue()
+                                    )
+                            )
+                            .toList();
+
+            endpoint.setResponses(responses);
+        }
+
         endpoints.add(endpoint);
+    }
+
+    private ApiResponse toApiResponse(
+            String statusCode,
+            io.swagger.v3.oas.models.responses.ApiResponse response) {
+
+        String contentType = null;
+        String schemaType = null;
+        String schemaName = null;
+
+        Content content = response.getContent();
+
+        if (content != null && !content.isEmpty()) {
+
+            contentType = content.keySet()
+                    .iterator()
+                    .next();
+
+            Schema<?> schema =
+                    content.get(contentType).getSchema();
+
+            if (schema != null) {
+
+                schemaType = schema.getType();
+
+                if (schema.get$ref() != null) {
+                    schemaName = schema.get$ref()
+                            .substring(
+                                    schema.get$ref().lastIndexOf("/") + 1
+                            );
+                }
+            }
+        }
+
+        return new ApiResponse(
+                statusCode,
+                response.getDescription(),
+                contentType,
+                schemaType,
+                schemaName
+        );
     }
 
     private ApiParameter toApiParameter(Parameter parameter) {

@@ -2,6 +2,7 @@ package com.bhavyachahal.aiqa.specification.parser;
 
 import com.bhavyachahal.aiqa.specification.model.ApiEndpoint;
 import com.bhavyachahal.aiqa.specification.model.ApiParameter;
+import com.bhavyachahal.aiqa.specification.model.ApiResponse;
 import com.bhavyachahal.aiqa.specification.model.ApiSpecification;
 import org.junit.jupiter.api.Test;
 
@@ -98,6 +99,51 @@ class OpenApiSpecificationParserTest {
         assertEquals(
                 "object",
                 createUserEndpoint.getRequestBody().getSchemaType()
+        );
+
+        ApiEndpoint getUserEndpoint = endpoints.stream()
+                .filter(endpoint ->
+                        endpoint.getMethod().equals("GET")
+                                && endpoint.getPath().equals("/users/{id}"))
+                .findFirst()
+                .orElseThrow();
+
+        assertEquals(2, getUserEndpoint.getResponses().size());
+
+        ApiResponse successResponse =
+                getUserEndpoint.getResponses()
+                        .stream()
+                        .filter(response ->
+                                response.getStatusCode().equals("200"))
+                        .findFirst()
+                        .orElseThrow();
+
+        assertEquals(
+                "User found",
+                successResponse.getDescription()
+        );
+
+        assertEquals(
+                "application/json",
+                successResponse.getContentType()
+        );
+
+        assertEquals(
+                "object",
+                successResponse.getSchemaType()
+        );
+
+        ApiResponse notFoundResponse =
+                getUserEndpoint.getResponses()
+                        .stream()
+                        .filter(response ->
+                                response.getStatusCode().equals("404"))
+                        .findFirst()
+                        .orElseThrow();
+
+        assertEquals(
+                "User not found",
+                notFoundResponse.getDescription()
         );
     }
 

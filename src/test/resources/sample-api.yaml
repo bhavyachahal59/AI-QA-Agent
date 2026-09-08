@@ -11,7 +11,13 @@ paths:
       summary: Get all users
       responses:
         '200':
-          description: Successful response
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
 
     post:
       summary: Create a user
@@ -34,6 +40,10 @@ paths:
       responses:
         '201':
           description: User created
+          content:
+            application/json:
+              schema:
+                type: object
 
   /users/{id}:
     get:
@@ -46,7 +56,11 @@ paths:
             type: integer
       responses:
         '200':
-          description: Successful response
+          description: User found
+          content:
+            application/json:
+              schema:
+                type: object
         '404':
           description: User not found
 
@@ -61,3 +75,5 @@ paths:
       responses:
         '204':
           description: User deleted
+        '404':
+          description: User not found
