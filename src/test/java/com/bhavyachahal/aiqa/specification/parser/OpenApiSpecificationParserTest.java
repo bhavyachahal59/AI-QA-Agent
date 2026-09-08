@@ -80,6 +80,25 @@ class OpenApiSpecificationParserTest {
                 .anyMatch(endpoint ->
                         endpoint.getMethod().equals("DELETE")
                                 && endpoint.getPath().equals("/users/{id}")));
+
+        ApiEndpoint createUserEndpoint = endpoints.stream()
+                .filter(endpoint ->
+                        endpoint.getMethod().equals("POST")
+                                && endpoint.getPath().equals("/users"))
+                .findFirst()
+                .orElseThrow();
+
+        assertNotNull(createUserEndpoint.getRequestBody());
+
+        assertEquals(
+                "application/json",
+                createUserEndpoint.getRequestBody().getContentType()
+        );
+
+        assertEquals(
+                "object",
+                createUserEndpoint.getRequestBody().getSchemaType()
+        );
     }
 
     private String loadSpecification() throws IOException {

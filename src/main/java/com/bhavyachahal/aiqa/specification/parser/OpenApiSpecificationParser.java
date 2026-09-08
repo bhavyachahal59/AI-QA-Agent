@@ -10,11 +10,13 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
 import com.bhavyachahal.aiqa.specification.model.ApiParameter;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.media.Schema;
+import com.bhavyachahal.aiqa.specification.model.ApiRequestBody;
+import io.swagger.v3.oas.models.media.Content;
+import io.swagger.v3.oas.models.parameters.RequestBody;
 
 public class OpenApiSpecificationParser {
 
@@ -146,6 +148,11 @@ public class OpenApiSpecificationParser {
 
             endpoint.setParameters(parameters);
         }
+        if (operation.getRequestBody() != null) {
+            endpoint.setRequestBody(
+                    toApiRequestBody(operation.getRequestBody())
+            );
+        }
 
         endpoints.add(endpoint);
     }
@@ -167,6 +174,43 @@ public class OpenApiSpecificationParser {
                 parameter.getIn(),
                 Boolean.TRUE.equals(parameter.getRequired()),
                 type
+        );
+    }
+
+    private ApiRequestBody toApiRequestBody(RequestBody requestBody) {
+
+        Content content = requestBody.getContent();
+
+        if (content == null || content.isEmpty()) {
+            return new ApiRequestBody(
+                    null,
+                    null,
+                    null
+            );
+        }
+
+        String contentType = content.keySet()
+                .iterator()
+                .next();
+
+        Schema<?> schema = content.get(contentType).getSchema();
+
+        String schemaType = null;
+        String schemaName = null;
+
+        if (schema != null) {
+            schemaType = schema.getType();
+
+            if (schema.get$ref() != null) {
+                schemaName = schema.get$ref()
+                        .substring(schema.get$ref().lastIndexOf("/") + 1);
+            }
+        }
+
+        return new ApiRequestBody(
+                contentType,
+                schemaType,
+                schemaName
         );
     }
 

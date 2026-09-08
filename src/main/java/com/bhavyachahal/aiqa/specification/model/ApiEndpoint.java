@@ -12,6 +12,7 @@ public class ApiEndpoint {
     private String method;
     private String summary;
     private List<ApiParameter> parameters = new ArrayList<>();
+    private ApiRequestBody requestBody;
 
     public ApiEndpoint() {
     }
@@ -75,5 +76,13 @@ public class ApiEndpoint {
 
     public void setParameters(List<ApiParameter> parameters) {
         this.parameters = parameters;
+    }
+
+    public ApiRequestBody getRequestBody() {
+        return requestBody;
+    }
+
+    public void setRequestBody(ApiRequestBody requestBody) {
+        this.requestBody = requestBody;
     }
 }
