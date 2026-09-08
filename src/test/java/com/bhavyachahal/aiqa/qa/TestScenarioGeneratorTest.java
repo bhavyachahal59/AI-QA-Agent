@@ -82,5 +82,26 @@ class TestScenarioGeneratorTest {
                                 scenario.getName()
                                         .equals("Missing required field: age"))
         );
+
+        assertTrue(
+                scenarios.stream()
+                        .anyMatch(scenario ->
+                                scenario.getName()
+                                        .equals("Invalid email: email"))
+        );
+
+        assertTrue(
+                scenarios.stream()
+                        .anyMatch(scenario ->
+                                scenario.getName()
+                                        .equals("Invalid integer: age"))
+        );
+
+        assertTrue(
+                scenarios.stream()
+                        .anyMatch(scenario ->
+                                scenario.getName()
+                                        .equals("Empty string: name"))
+        );
     }
 }

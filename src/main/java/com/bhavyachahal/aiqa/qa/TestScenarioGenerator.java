@@ -119,6 +119,58 @@ public class TestScenarioGenerator {
                     });
         }
 
+        if (endpoint.getRequestBody() != null
+                && endpoint.getRequestBody().getFields() != null) {
+
+            endpoint.getRequestBody()
+                    .getFields()
+                    .forEach(field -> {
+
+                        if ("email".equalsIgnoreCase(field.getFormat())) {
+
+                            scenarios.add(
+                                    new TestScenario(
+                                            "Invalid email: " + field.getName(),
+                                            "Verify the endpoint rejects an invalid email "
+                                                    + "value for request body field '"
+                                                    + field.getName()
+                                                    + "'",
+                                            "VALIDATION"
+                                    )
+                            );
+                        }
+
+                        if ("integer".equalsIgnoreCase(field.getType())) {
+
+                            scenarios.add(
+                                    new TestScenario(
+                                            "Invalid integer: " + field.getName(),
+                                            "Verify the endpoint rejects a non-integer "
+                                                    + "value for request body field '"
+                                                    + field.getName()
+                                                    + "'",
+                                            "VALIDATION"
+                                    )
+                            );
+                        }
+
+                        if ("string".equalsIgnoreCase(field.getType())
+                                && !"email".equalsIgnoreCase(field.getFormat())) {
+
+                            scenarios.add(
+                                    new TestScenario(
+                                            "Empty string: " + field.getName(),
+                                            "Verify the endpoint validates an empty string "
+                                                    + "for request body field '"
+                                                    + field.getName()
+                                                    + "'",
+                                            "VALIDATION"
+                                    )
+                            );
+                        }
+                    });
+        }
+
         if (endpoint.getResponses() != null
                 && !endpoint.getResponses().isEmpty()) {
 
