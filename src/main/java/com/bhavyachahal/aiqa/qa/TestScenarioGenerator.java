@@ -1,7 +1,9 @@
 package com.bhavyachahal.aiqa.qa;
 
+import com.bhavyachahal.aiqa.qa.model.RequestPayload;
 import com.bhavyachahal.aiqa.qa.model.TestScenario;
 import com.bhavyachahal.aiqa.specification.model.ApiEndpoint;
+import com.bhavyachahal.aiqa.specification.model.ApiRequestBody;
 import com.bhavyachahal.aiqa.specification.model.ApiRequestBodyField;
 
 import java.util.ArrayList;
@@ -11,14 +13,6 @@ public class TestScenarioGenerator {
     public List<TestScenario> generate(ApiEndpoint endpoint) {
 
         List<TestScenario> scenarios = new ArrayList<>();
-
-        scenarios.add(
-                new TestScenario(
-                        "Valid request",
-                        "Verify the endpoint accepts a valid request",
-                        "POSITIVE"
-                )
-        );
 
         if (endpoint.getParameters() != null) {
 
@@ -85,16 +79,22 @@ public class TestScenarioGenerator {
                     });
         }
 
-        if (endpoint.getRequestBody() != null) {
+        TestScenario validRequestScenario =
+                new TestScenario(
+                        "Valid request",
+                        "Verify the endpoint accepts a valid request",
+                        "POSITIVE"
+                );
 
-            scenarios.add(
-                    new TestScenario(
-                            "Invalid request body",
-                            "Verify the endpoint rejects an invalid request body",
-                            "NEGATIVE"
-                    )
+        if (endpoint.getRequestBody() != null
+                && endpoint.getRequestBody().getFields() != null) {
+
+            validRequestScenario.setRequestPayload(
+                    generateBaselinePayload(endpoint.getRequestBody())
             );
         }
+
+        scenarios.add(validRequestScenario);
 
         if (endpoint.getRequestBody() != null
                 && endpoint.getRequestBody().getFields() != null) {
@@ -224,5 +224,26 @@ public class TestScenarioGenerator {
         }
 
         return scenarios;
+    }
+
+    private RequestPayload generateBaselinePayload(
+            ApiRequestBody requestBody) {
+
+        RequestPayload payload = new RequestPayload();
+
+        for (ApiRequestBodyField field : requestBody.getFields()) {
+
+            Object value = switch (field.getType().toLowerCase()) {
+                case "string" -> "sample-" + field.getName();
+                case "integer" -> 1;
+                case "number" -> 1.0;
+                case "boolean" -> true;
+                default -> null;
+            };
+
+            payload.addField(field.getName(), value);
+        }
+
+        return payload;
     }
 }

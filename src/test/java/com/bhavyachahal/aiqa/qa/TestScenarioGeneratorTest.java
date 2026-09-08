@@ -1,18 +1,16 @@
 package com.bhavyachahal.aiqa.qa;
 
+import com.bhavyachahal.aiqa.qa.model.RequestPayload;
 import com.bhavyachahal.aiqa.qa.model.TestScenario;
 import com.bhavyachahal.aiqa.specification.model.ApiEndpoint;
+import com.bhavyachahal.aiqa.specification.model.ApiRequestBody;
+import com.bhavyachahal.aiqa.specification.model.ApiRequestBodyField;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import com.bhavyachahal.aiqa.specification.model.ApiParameter;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import com.bhavyachahal.aiqa.specification.model.ApiRequestBody;
-import com.bhavyachahal.aiqa.specification.model.ApiRequestBodyField;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TestScenarioGeneratorTest {
 
@@ -182,6 +180,32 @@ class TestScenarioGeneratorTest {
                         .findFirst()
                         .orElseThrow()
                         .getTestData()
+        );
+
+        TestScenario validRequestScenario =
+                scenarios.stream()
+                        .filter(scenario ->
+                                scenario.getName()
+                                        .equals("Valid request"))
+                        .findFirst()
+                        .orElseThrow();
+
+        RequestPayload requestPayload =
+                validRequestScenario.getRequestPayload();
+
+        assertEquals(
+                "sample-name",
+                requestPayload.getFields().get("name")
+        );
+
+        assertEquals(
+                "sample-email",
+                requestPayload.getFields().get("email")
+        );
+
+        assertEquals(
+                1,
+                requestPayload.getFields().get("age")
         );
     }
 }

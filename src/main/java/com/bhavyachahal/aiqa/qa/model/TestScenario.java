@@ -6,6 +6,7 @@ public class TestScenario {
     private String description;
     private String type;
     private String testData;
+    private RequestPayload requestPayload;
 
     public TestScenario() {
     }
@@ -49,5 +50,12 @@ public class TestScenario {
 
     public void setTestData(String testData) {
         this.testData = testData;
+    }
+    public RequestPayload getRequestPayload() {
+        return requestPayload;
+    }
+
+    public void setRequestPayload(RequestPayload requestPayload) {
+        this.requestPayload = requestPayload;
     }
 }
