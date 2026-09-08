@@ -101,6 +101,27 @@ class TestScenarioGeneratorTest {
                 scenarios.stream()
                         .anyMatch(scenario ->
                                 scenario.getName()
+                                        .equals("Negative integer: age"))
+        );
+
+        assertTrue(
+                scenarios.stream()
+                        .anyMatch(scenario ->
+                                scenario.getName()
+                                        .equals("Zero value: age"))
+        );
+
+        assertTrue(
+                scenarios.stream()
+                        .anyMatch(scenario ->
+                                scenario.getName()
+                                        .equals("Large integer: age"))
+        );
+
+        assertTrue(
+                scenarios.stream()
+                        .anyMatch(scenario ->
+                                scenario.getName()
                                         .equals("Empty string: name"))
         );
     }

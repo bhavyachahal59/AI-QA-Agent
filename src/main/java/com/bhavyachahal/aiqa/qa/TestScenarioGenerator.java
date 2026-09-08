@@ -152,6 +152,37 @@ public class TestScenarioGenerator {
                                             "VALIDATION"
                                     )
                             );
+                            scenarios.add(
+                                    new TestScenario(
+                                            "Negative integer: " + field.getName(),
+                                            "Verify the endpoint handles a negative integer "
+                                                    + "value for request body field '"
+                                                    + field.getName()
+                                                    + "'",
+                                            "BOUNDARY"
+                                    )
+                            );
+                            scenarios.add(
+                                    new TestScenario(
+                                            "Zero value: " + field.getName(),
+                                            "Verify the endpoint handles a zero value "
+                                                    + "for request body field '"
+                                                    + field.getName()
+                                                    + "'",
+                                            "BOUNDARY"
+                                    )
+                            );
+
+                            scenarios.add(
+                                    new TestScenario(
+                                            "Large integer: " + field.getName(),
+                                            "Verify the endpoint handles a large integer "
+                                                    + "value for request body field '"
+                                                    + field.getName()
+                                                    + "'",
+                                            "BOUNDARY"
+                                    )
+                            );
                         }
 
                         if ("string".equalsIgnoreCase(field.getType())
