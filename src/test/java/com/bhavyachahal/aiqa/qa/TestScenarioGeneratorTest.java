@@ -81,15 +81,36 @@ class TestScenarioGeneratorTest {
                                         .equals("Missing required field: age"))
         );
 
-        assertEquals(
-                "invalid-email",
+        TestScenario invalidEmailScenario =
                 scenarios.stream()
                         .filter(scenario ->
                                 scenario.getName()
                                         .equals("Invalid email: email"))
                         .findFirst()
-                        .orElseThrow()
-                        .getTestData()
+                        .orElseThrow();
+
+        assertEquals(
+                "invalid-email",
+                invalidEmailScenario
+                        .getRequestPayload()
+                        .getFields()
+                        .get("email")
+        );
+
+        assertEquals(
+                "sample-name",
+                invalidEmailScenario
+                        .getRequestPayload()
+                        .getFields()
+                        .get("name")
+        );
+
+        assertEquals(
+                1,
+                invalidEmailScenario
+                        .getRequestPayload()
+                        .getFields()
+                        .get("age")
         );
 
         assertTrue(
@@ -127,59 +148,100 @@ class TestScenarioGeneratorTest {
                                         .equals("Empty string: name"))
         );
 
-        assertEquals(
-                "\"not-an-integer\"",
+        TestScenario invalidIntegerScenario =
                 scenarios.stream()
                         .filter(scenario ->
                                 scenario.getName()
                                         .equals("Invalid integer: age"))
                         .findFirst()
-                        .orElseThrow()
-                        .getTestData()
+                        .orElseThrow();
+
+        assertEquals(
+                "not-an-integer",
+                invalidIntegerScenario
+                        .getRequestPayload()
+                        .getFields()
+                        .get("age")
         );
 
         assertEquals(
-                "-1",
+                "sample-name",
+                invalidIntegerScenario
+                        .getRequestPayload()
+                        .getFields()
+                        .get("name")
+        );
+
+        assertEquals(
+                "sample-email",
+                invalidIntegerScenario
+                        .getRequestPayload()
+                        .getFields()
+                        .get("email")
+        );
+
+        TestScenario negativeIntegerScenario =
                 scenarios.stream()
                         .filter(scenario ->
                                 scenario.getName()
                                         .equals("Negative integer: age"))
                         .findFirst()
-                        .orElseThrow()
-                        .getTestData()
-        );
+                        .orElseThrow();
 
         assertEquals(
-                "0",
+                -1,
+                negativeIntegerScenario
+                        .getRequestPayload()
+                        .getFields()
+                        .get("age")
+        );
+
+        TestScenario zeroValueScenario =
                 scenarios.stream()
                         .filter(scenario ->
                                 scenario.getName()
                                         .equals("Zero value: age"))
                         .findFirst()
-                        .orElseThrow()
-                        .getTestData()
-        );
+                        .orElseThrow();
 
         assertEquals(
-                "2147483647",
+                0,
+                zeroValueScenario
+                        .getRequestPayload()
+                        .getFields()
+                        .get("age")
+        );
+
+        TestScenario largeIntegerScenario =
                 scenarios.stream()
                         .filter(scenario ->
                                 scenario.getName()
                                         .equals("Large integer: age"))
                         .findFirst()
-                        .orElseThrow()
-                        .getTestData()
-        );
+                        .orElseThrow();
 
         assertEquals(
-                "\"\"",
+                2147483647,
+                largeIntegerScenario
+                        .getRequestPayload()
+                        .getFields()
+                        .get("age")
+        );
+
+        TestScenario emptyStringScenario =
                 scenarios.stream()
                         .filter(scenario ->
                                 scenario.getName()
                                         .equals("Empty string: name"))
                         .findFirst()
-                        .orElseThrow()
-                        .getTestData()
+                        .orElseThrow();
+
+        assertEquals(
+                "",
+                emptyStringScenario
+                        .getRequestPayload()
+                        .getFields()
+                        .get("name")
         );
 
         TestScenario validRequestScenario =

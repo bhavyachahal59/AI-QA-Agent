@@ -21,4 +21,10 @@ public class RequestPayload {
     public void addField(String name, Object value) {
         fields.put(name, value);
     }
+
+    public RequestPayload copy() {
+        RequestPayload copy = new RequestPayload();
+        copy.setFields(new LinkedHashMap<>(this.fields));
+        return copy;
+    }
 }

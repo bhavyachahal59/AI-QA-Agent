@@ -137,7 +137,15 @@ public class TestScenarioGenerator {
                                     "VALIDATION"
                             );
 
-                            invalidEmailScenario.setTestData("invalid-email");
+                            RequestPayload invalidEmailPayload =
+                                    generateBaselinePayload(endpoint.getRequestBody()).copy();
+
+                            invalidEmailPayload.addField(
+                                    field.getName(),
+                                    "invalid-email"
+                            );
+
+                            invalidEmailScenario.setRequestPayload(invalidEmailPayload);
 
                             scenarios.add(invalidEmailScenario);
                         }
@@ -153,7 +161,18 @@ public class TestScenarioGenerator {
                                     "VALIDATION"
                             );
 
-                            invalidIntegerScenario.setTestData("\"not-an-integer\"");
+                            RequestPayload invalidIntegerPayload =
+                                    generateBaselinePayload(endpoint.getRequestBody()).copy();
+
+                            invalidIntegerPayload.addField(
+                                    field.getName(),
+                                    "not-an-integer"
+                            );
+
+                            invalidIntegerScenario.setRequestPayload(
+                                    invalidIntegerPayload
+                            );
+
                             scenarios.add(invalidIntegerScenario);
 
                             TestScenario negativeIntegerScenario = new TestScenario(
@@ -165,7 +184,18 @@ public class TestScenarioGenerator {
                                     "BOUNDARY"
                             );
 
-                            negativeIntegerScenario.setTestData("-1");
+                            RequestPayload negativeIntegerPayload =
+                                    generateBaselinePayload(endpoint.getRequestBody()).copy();
+
+                            negativeIntegerPayload.addField(
+                                    field.getName(),
+                                    -1
+                            );
+
+                            negativeIntegerScenario.setRequestPayload(
+                                    negativeIntegerPayload
+                            );
+
                             scenarios.add(negativeIntegerScenario);
 
                             TestScenario zeroValueScenario = new TestScenario(
@@ -177,7 +207,18 @@ public class TestScenarioGenerator {
                                     "BOUNDARY"
                             );
 
-                            zeroValueScenario.setTestData("0");
+                            RequestPayload zeroValuePayload =
+                                    generateBaselinePayload(endpoint.getRequestBody()).copy();
+
+                            zeroValuePayload.addField(
+                                    field.getName(),
+                                    0
+                            );
+
+                            zeroValueScenario.setRequestPayload(
+                                    zeroValuePayload
+                            );
+
                             scenarios.add(zeroValueScenario);
 
                             TestScenario largeIntegerScenario = new TestScenario(
@@ -189,7 +230,18 @@ public class TestScenarioGenerator {
                                     "BOUNDARY"
                             );
 
-                            largeIntegerScenario.setTestData("2147483647");
+                            RequestPayload largeIntegerPayload =
+                                    generateBaselinePayload(endpoint.getRequestBody()).copy();
+
+                            largeIntegerPayload.addField(
+                                    field.getName(),
+                                    2147483647
+                            );
+
+                            largeIntegerScenario.setRequestPayload(
+                                    largeIntegerPayload
+                            );
+
                             scenarios.add(largeIntegerScenario);
                         }
 
@@ -205,7 +257,18 @@ public class TestScenarioGenerator {
                                     "VALIDATION"
                             );
 
-                            emptyStringScenario.setTestData("\"\"");
+                            RequestPayload emptyStringPayload =
+                                    generateBaselinePayload(endpoint.getRequestBody()).copy();
+
+                            emptyStringPayload.addField(
+                                    field.getName(),
+                                    ""
+                            );
+
+                            emptyStringScenario.setRequestPayload(
+                                    emptyStringPayload
+                            );
+
                             scenarios.add(emptyStringScenario);
                         }
                     });
