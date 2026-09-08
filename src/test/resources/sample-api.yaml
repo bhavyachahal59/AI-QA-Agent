@@ -1,0 +1,47 @@
+openapi: 3.0.3
+
+info:
+  title: Sample User API
+  version: 1.0.0
+
+paths:
+
+  /users:
+    get:
+      summary: Get all users
+      responses:
+        '200':
+          description: Successful response
+
+    post:
+      summary: Create a user
+      responses:
+        '201':
+          description: User created
+
+  /users/{id}:
+    get:
+      summary: Get a user by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful response
+        '404':
+          description: User not found
+
+    delete:
+      summary: Delete a user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: User deleted
