@@ -5,6 +5,7 @@ public class TestScenario {
     private String name;
     private String description;
     private String type;
+    private String testData;
 
     public TestScenario() {
     }
@@ -40,5 +41,13 @@ public class TestScenario {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getTestData() {
+        return testData;
+    }
+
+    public void setTestData(String testData) {
+        this.testData = testData;
     }
 }

@@ -128,76 +128,85 @@ public class TestScenarioGenerator {
 
                         if ("email".equalsIgnoreCase(field.getFormat())) {
 
-                            scenarios.add(
-                                    new TestScenario(
-                                            "Invalid email: " + field.getName(),
-                                            "Verify the endpoint rejects an invalid email "
-                                                    + "value for request body field '"
-                                                    + field.getName()
-                                                    + "'",
-                                            "VALIDATION"
-                                    )
+                            TestScenario invalidEmailScenario = new TestScenario(
+                                    "Invalid email: " + field.getName(),
+                                    "Verify the endpoint rejects an invalid email "
+                                            + "value for request body field '"
+                                            + field.getName()
+                                            + "'",
+                                    "VALIDATION"
                             );
+
+                            invalidEmailScenario.setTestData("invalid-email");
+
+                            scenarios.add(invalidEmailScenario);
                         }
 
                         if ("integer".equalsIgnoreCase(field.getType())) {
 
-                            scenarios.add(
-                                    new TestScenario(
-                                            "Invalid integer: " + field.getName(),
-                                            "Verify the endpoint rejects a non-integer "
-                                                    + "value for request body field '"
-                                                    + field.getName()
-                                                    + "'",
-                                            "VALIDATION"
-                                    )
-                            );
-                            scenarios.add(
-                                    new TestScenario(
-                                            "Negative integer: " + field.getName(),
-                                            "Verify the endpoint handles a negative integer "
-                                                    + "value for request body field '"
-                                                    + field.getName()
-                                                    + "'",
-                                            "BOUNDARY"
-                                    )
-                            );
-                            scenarios.add(
-                                    new TestScenario(
-                                            "Zero value: " + field.getName(),
-                                            "Verify the endpoint handles a zero value "
-                                                    + "for request body field '"
-                                                    + field.getName()
-                                                    + "'",
-                                            "BOUNDARY"
-                                    )
+                            TestScenario invalidIntegerScenario = new TestScenario(
+                                    "Invalid integer: " + field.getName(),
+                                    "Verify the endpoint rejects a non-integer "
+                                            + "value for request body field '"
+                                            + field.getName()
+                                            + "'",
+                                    "VALIDATION"
                             );
 
-                            scenarios.add(
-                                    new TestScenario(
-                                            "Large integer: " + field.getName(),
-                                            "Verify the endpoint handles a large integer "
-                                                    + "value for request body field '"
-                                                    + field.getName()
-                                                    + "'",
-                                            "BOUNDARY"
-                                    )
+                            invalidIntegerScenario.setTestData("\"not-an-integer\"");
+                            scenarios.add(invalidIntegerScenario);
+
+                            TestScenario negativeIntegerScenario = new TestScenario(
+                                    "Negative integer: " + field.getName(),
+                                    "Verify the endpoint handles a negative integer "
+                                            + "value for request body field '"
+                                            + field.getName()
+                                            + "'",
+                                    "BOUNDARY"
                             );
+
+                            negativeIntegerScenario.setTestData("-1");
+                            scenarios.add(negativeIntegerScenario);
+
+                            TestScenario zeroValueScenario = new TestScenario(
+                                    "Zero value: " + field.getName(),
+                                    "Verify the endpoint handles a zero value "
+                                            + "for request body field '"
+                                            + field.getName()
+                                            + "'",
+                                    "BOUNDARY"
+                            );
+
+                            zeroValueScenario.setTestData("0");
+                            scenarios.add(zeroValueScenario);
+
+                            TestScenario largeIntegerScenario = new TestScenario(
+                                    "Large integer: " + field.getName(),
+                                    "Verify the endpoint handles a large integer "
+                                            + "value for request body field '"
+                                            + field.getName()
+                                            + "'",
+                                    "BOUNDARY"
+                            );
+
+                            largeIntegerScenario.setTestData("2147483647");
+                            scenarios.add(largeIntegerScenario);
                         }
 
                         if ("string".equalsIgnoreCase(field.getType())
                                 && !"email".equalsIgnoreCase(field.getFormat())) {
 
-                            scenarios.add(
-                                    new TestScenario(
-                                            "Empty string: " + field.getName(),
-                                            "Verify the endpoint validates an empty string "
-                                                    + "for request body field '"
-                                                    + field.getName()
-                                                    + "'",
-                                            "VALIDATION"
-                                    )
+                            TestScenario emptyStringScenario = new TestScenario(
+                                    "Empty string: " + field.getName(),
+                                    "Verify the endpoint validates an empty string "
+                                            + "for request body field '"
+                                            + field.getName()
+                                            + "'",
+                                    "VALIDATION"
                             );
+
+                            emptyStringScenario.setTestData("\"\"");
+                            scenarios.add(emptyStringScenario);
                         }
                     });
         }
