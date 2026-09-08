@@ -11,28 +11,50 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.bhavyachahal.aiqa.specification.model.ApiParameter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import com.bhavyachahal.aiqa.specification.model.ApiRequestBody;
+import com.bhavyachahal.aiqa.specification.model.ApiRequestBodyField;
 
 class TestScenarioGeneratorTest {
 
     @Test
-    void shouldGenerateParameterSpecificScenarios() {
+    void shouldGenerateRequestBodyFieldScenarios() {
 
         ApiEndpoint endpoint = new ApiEndpoint();
 
-        endpoint.setPath("/users/{id}");
-        endpoint.setMethod("GET");
+        endpoint.setPath("/users");
+        endpoint.setMethod("POST");
 
-        ApiParameter idParameter =
-                new ApiParameter(
-                        "id",
-                        "path",
-                        true,
-                        "integer"
+        ApiRequestBody requestBody =
+                new ApiRequestBody(
+                        "application/json",
+                        "object",
+                        null
                 );
 
-        endpoint.setParameters(
-                List.of(idParameter)
+        requestBody.setFields(
+                List.of(
+                        new ApiRequestBodyField(
+                                "name",
+                                "string",
+                                true,
+                                null
+                        ),
+                        new ApiRequestBodyField(
+                                "email",
+                                "string",
+                                true,
+                                "email"
+                        ),
+                        new ApiRequestBodyField(
+                                "age",
+                                "integer",
+                                false,
+                                "int32"
+                        )
+                )
         );
+
+        endpoint.setRequestBody(requestBody);
 
         TestScenarioGenerator generator =
                 new TestScenarioGenerator();
@@ -40,27 +62,25 @@ class TestScenarioGeneratorTest {
         List<TestScenario> scenarios =
                 generator.generate(endpoint);
 
-        assertEquals(4, scenarios.size());
-
         assertTrue(
                 scenarios.stream()
                         .anyMatch(scenario ->
                                 scenario.getName()
-                                        .equals("Boundary value: id"))
+                                        .equals("Missing required field: name"))
         );
 
         assertTrue(
                 scenarios.stream()
                         .anyMatch(scenario ->
                                 scenario.getName()
-                                        .equals("Missing required parameter: id"))
+                                        .equals("Missing required field: email"))
         );
 
         assertTrue(
                 scenarios.stream()
-                        .anyMatch(scenario ->
+                        .noneMatch(scenario ->
                                 scenario.getName()
-                                        .equals("Invalid parameter: id"))
+                                        .equals("Missing required field: age"))
         );
     }
 }

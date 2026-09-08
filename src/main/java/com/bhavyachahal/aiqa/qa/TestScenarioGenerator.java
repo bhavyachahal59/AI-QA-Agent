@@ -2,6 +2,7 @@ package com.bhavyachahal.aiqa.qa;
 
 import com.bhavyachahal.aiqa.qa.model.TestScenario;
 import com.bhavyachahal.aiqa.specification.model.ApiEndpoint;
+import com.bhavyachahal.aiqa.specification.model.ApiRequestBodyField;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -93,6 +94,29 @@ public class TestScenarioGenerator {
                             "NEGATIVE"
                     )
             );
+        }
+
+        if (endpoint.getRequestBody() != null
+                && endpoint.getRequestBody().getFields() != null) {
+
+            endpoint.getRequestBody()
+                    .getFields()
+                    .stream()
+                    .filter(ApiRequestBodyField::isRequired)
+                    .forEach(field -> {
+
+                        scenarios.add(
+                                new TestScenario(
+                                        "Missing required field: "
+                                                + field.getName(),
+                                        "Verify the endpoint rejects the request when required "
+                                                + "request body field '"
+                                                + field.getName()
+                                                + "' is missing",
+                                        "VALIDATION"
+                                )
+                        );
+                    });
         }
 
         if (endpoint.getResponses() != null

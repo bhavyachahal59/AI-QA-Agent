@@ -1,10 +1,14 @@
 package com.bhavyachahal.aiqa.specification.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ApiRequestBody {
 
     private String contentType;
     private String schemaType;
     private String schemaName;
+    private List<ApiRequestBodyField> fields = new ArrayList<>();
 
     public ApiRequestBody() {
     }
@@ -40,5 +44,13 @@ public class ApiRequestBody {
 
     public void setSchemaName(String schemaName) {
         this.schemaName = schemaName;
+    }
+
+    public List<ApiRequestBodyField> getFields() {
+        return fields;
+    }
+
+    public void setFields(List<ApiRequestBodyField> fields) {
+        this.fields = fields;
     }
 }

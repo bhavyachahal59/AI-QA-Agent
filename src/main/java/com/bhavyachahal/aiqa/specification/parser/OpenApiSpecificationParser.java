@@ -1,8 +1,8 @@
 package com.bhavyachahal.aiqa.specification.parser;
 
-import com.bhavyachahal.aiqa.specification.model.ApiEndpoint;
-import com.bhavyachahal.aiqa.specification.model.ApiSpecification;
+import com.bhavyachahal.aiqa.specification.model.*;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 
@@ -10,14 +10,12 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import com.bhavyachahal.aiqa.specification.model.ApiParameter;
+
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.media.Schema;
-import com.bhavyachahal.aiqa.specification.model.ApiRequestBody;
 import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.parameters.RequestBody;
-import com.bhavyachahal.aiqa.specification.model.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
 
 public class OpenApiSpecificationParser {
@@ -236,41 +234,77 @@ public class OpenApiSpecificationParser {
         );
     }
 
-    private ApiRequestBody toApiRequestBody(RequestBody requestBody) {
+    private ApiRequestBody toApiRequestBody(
+            io.swagger.v3.oas.models.parameters.RequestBody requestBody) {
+
+        String contentType = null;
+        String schemaType = null;
+        String schemaName = null;
+
+        ApiRequestBody apiRequestBody =
+                new ApiRequestBody();
 
         Content content = requestBody.getContent();
 
         if (content == null || content.isEmpty()) {
-            return new ApiRequestBody(
-                    null,
-                    null,
-                    null
-            );
+            return apiRequestBody;
         }
 
-        String contentType = content.keySet()
+        contentType = content.keySet()
                 .iterator()
                 .next();
 
-        Schema<?> schema = content.get(contentType).getSchema();
+        MediaType mediaType = content.get(contentType);
 
-        String schemaType = null;
-        String schemaName = null;
+        Schema<?> schema = mediaType.getSchema();
 
-        if (schema != null) {
-            schemaType = schema.getType();
-
-            if (schema.get$ref() != null) {
-                schemaName = schema.get$ref()
-                        .substring(schema.get$ref().lastIndexOf("/") + 1);
-            }
+        if (schema == null) {
+            return apiRequestBody;
         }
 
-        return new ApiRequestBody(
-                contentType,
-                schemaType,
-                schemaName
-        );
+        schemaType = schema.getType();
+
+        if (schema.get$ref() != null) {
+            schemaName = schema.get$ref()
+                    .substring(
+                            schema.get$ref().lastIndexOf("/") + 1
+                    );
+        }
+
+        apiRequestBody.setContentType(contentType);
+        apiRequestBody.setSchemaType(schemaType);
+        apiRequestBody.setSchemaName(schemaName);
+
+        if (schema.getProperties() != null) {
+
+            List<ApiRequestBodyField> fields =
+                    new ArrayList<>();
+
+            schema.getProperties()
+                    .forEach((name, propertySchemaObject) -> {
+
+                        Schema<?> propertySchema =
+                                (Schema<?>) propertySchemaObject;
+
+                        boolean required =
+                                schema.getRequired() != null
+                                        && schema.getRequired()
+                                        .contains(name);
+
+                        fields.add(
+                                new ApiRequestBodyField(
+                                        name,
+                                        propertySchema.getType(),
+                                        required,
+                                        propertySchema.getFormat()
+                                )
+                        );
+                    });
+
+            apiRequestBody.setFields(fields);
+        }
+
+        return apiRequestBody;
     }
 
     private ApiEndpoint createEndpoint(

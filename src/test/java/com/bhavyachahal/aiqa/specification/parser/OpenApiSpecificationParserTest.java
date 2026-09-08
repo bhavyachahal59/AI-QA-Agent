@@ -1,9 +1,6 @@
 package com.bhavyachahal.aiqa.specification.parser;
 
-import com.bhavyachahal.aiqa.specification.model.ApiEndpoint;
-import com.bhavyachahal.aiqa.specification.model.ApiParameter;
-import com.bhavyachahal.aiqa.specification.model.ApiResponse;
-import com.bhavyachahal.aiqa.specification.model.ApiSpecification;
+import com.bhavyachahal.aiqa.specification.model.*;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -88,6 +85,61 @@ class OpenApiSpecificationParserTest {
                                 && endpoint.getPath().equals("/users"))
                 .findFirst()
                 .orElseThrow();
+
+        ApiRequestBody requestBody =
+                createUserEndpoint.getRequestBody();
+
+        assertNotNull(requestBody);
+
+        assertEquals(
+                "application/json",
+                requestBody.getContentType()
+        );
+
+        assertEquals(
+                "object",
+                requestBody.getSchemaType()
+        );
+
+        assertFalse(requestBody.getFields().isEmpty());
+
+        assertEquals(
+                3,
+                requestBody.getFields().size()
+        );
+
+        ApiRequestBodyField nameField =
+                requestBody.getFields()
+                        .stream()
+                        .filter(field ->
+                                field.getName().equals("name"))
+                        .findFirst()
+                        .orElseThrow();
+
+        assertEquals("string", nameField.getType());
+        assertTrue(nameField.isRequired());
+
+        ApiRequestBodyField emailField =
+                requestBody.getFields()
+                        .stream()
+                        .filter(field ->
+                                field.getName().equals("email"))
+                        .findFirst()
+                        .orElseThrow();
+
+        assertEquals("string", emailField.getType());
+        assertTrue(emailField.isRequired());
+
+        ApiRequestBodyField ageField =
+                requestBody.getFields()
+                        .stream()
+                        .filter(field ->
+                                field.getName().equals("age"))
+                        .findFirst()
+                        .orElseThrow();
+
+        assertEquals("integer", ageField.getType());
+        assertFalse(ageField.isRequired());
 
         assertNotNull(createUserEndpoint.getRequestBody());
 
