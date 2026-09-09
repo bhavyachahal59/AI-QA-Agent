@@ -4,6 +4,7 @@ import com.bhavyachahal.aiqa.qa.model.TestExecutionResult;
 import com.bhavyachahal.aiqa.qa.model.TestScenario;
 import com.bhavyachahal.aiqa.specification.model.ApiEndpoint;
 import com.bhavyachahal.aiqa.specification.model.ApiResponse;
+
 import org.springframework.web.client.RestClient;
 
 public class ApiTestExecutor {
@@ -84,7 +85,8 @@ public class ApiTestExecutor {
                 .stream()
                 .filter(response ->
                         String.valueOf(actualStatusCode)
-                                .equals(response.getStatusCode()))
+                                .equals(response.getStatusCode())
+                )
                 .findFirst()
                 .orElse(null);
     }
