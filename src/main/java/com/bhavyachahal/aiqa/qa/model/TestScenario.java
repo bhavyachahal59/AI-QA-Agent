@@ -1,5 +1,8 @@
 package com.bhavyachahal.aiqa.qa.model;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 public class TestScenario {
 
     private String name;
@@ -8,6 +11,9 @@ public class TestScenario {
     private String testData;
     private RequestPayload requestPayload;
 
+    private Map<String, Object> parameterValues =
+            new LinkedHashMap<>();
+
     public TestScenario() {
     }
 
@@ -15,6 +21,7 @@ public class TestScenario {
             String name,
             String description,
             String type) {
+
         this.name = name;
         this.description = description;
         this.type = type;
@@ -51,11 +58,28 @@ public class TestScenario {
     public void setTestData(String testData) {
         this.testData = testData;
     }
+
     public RequestPayload getRequestPayload() {
         return requestPayload;
     }
 
-    public void setRequestPayload(RequestPayload requestPayload) {
+    public void setRequestPayload(
+            RequestPayload requestPayload) {
+
         this.requestPayload = requestPayload;
+    }
+
+    public Map<String, Object> getParameterValues() {
+        return parameterValues;
+    }
+
+    public void addParameterValue(
+            String name,
+            Object value) {
+
+        parameterValues.put(
+                name,
+                value
+        );
     }
 }

@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TestScenarioGeneratorTest {
@@ -81,6 +82,29 @@ class TestScenarioGeneratorTest {
                                         .equals("Missing required field: age"))
         );
 
+        TestScenario missingEmailScenario =
+                scenarios.stream()
+                        .filter(scenario ->
+                                scenario.getName()
+                                        .equals("Missing required field: email"))
+                        .findFirst()
+                        .orElseThrow();
+
+        assertFalse(
+                missingEmailScenario
+                        .getRequestPayload()
+                        .getFields()
+                        .containsKey("email")
+        );
+
+        assertEquals(
+                "sample-name",
+                missingEmailScenario
+                        .getRequestPayload()
+                        .getFields()
+                        .get("name")
+        );
+
         TestScenario invalidEmailScenario =
                 scenarios.stream()
                         .filter(scenario ->
@@ -111,41 +135,6 @@ class TestScenarioGeneratorTest {
                         .getRequestPayload()
                         .getFields()
                         .get("age")
-        );
-
-        assertTrue(
-                scenarios.stream()
-                        .anyMatch(scenario ->
-                                scenario.getName()
-                                        .equals("Invalid integer: age"))
-        );
-
-        assertTrue(
-                scenarios.stream()
-                        .anyMatch(scenario ->
-                                scenario.getName()
-                                        .equals("Negative integer: age"))
-        );
-
-        assertTrue(
-                scenarios.stream()
-                        .anyMatch(scenario ->
-                                scenario.getName()
-                                        .equals("Zero value: age"))
-        );
-
-        assertTrue(
-                scenarios.stream()
-                        .anyMatch(scenario ->
-                                scenario.getName()
-                                        .equals("Large integer: age"))
-        );
-
-        assertTrue(
-                scenarios.stream()
-                        .anyMatch(scenario ->
-                                scenario.getName()
-                                        .equals("Empty string: name"))
         );
 
         TestScenario invalidIntegerScenario =
@@ -221,7 +210,7 @@ class TestScenarioGeneratorTest {
                         .orElseThrow();
 
         assertEquals(
-                2147483647,
+                Integer.MAX_VALUE,
                 largeIntegerScenario
                         .getRequestPayload()
                         .getFields()
@@ -268,6 +257,77 @@ class TestScenarioGeneratorTest {
         assertEquals(
                 1,
                 requestPayload.getFields().get("age")
+        );
+    }
+
+    @Test
+    void shouldGenerateStructuredParameterValues() {
+
+        ApiEndpoint endpoint = new ApiEndpoint();
+
+        endpoint.setPath("/users/{id}");
+        endpoint.setMethod("GET");
+
+        endpoint.setParameters(
+                List.of(
+                        new com.bhavyachahal.aiqa.specification.model.ApiParameter(
+                                "id",
+                                "path",
+                                true,
+                                "integer"
+                        )
+                )
+        );
+
+        TestScenarioGenerator generator =
+                new TestScenarioGenerator();
+
+        List<TestScenario> scenarios =
+                generator.generate(endpoint);
+
+        TestScenario validScenario =
+                scenarios.stream()
+                        .filter(scenario ->
+                                scenario.getName()
+                                        .equals("Valid request"))
+                        .findFirst()
+                        .orElseThrow();
+
+        assertEquals(
+                1,
+                validScenario
+                        .getParameterValues()
+                        .get("id")
+        );
+
+        TestScenario invalidScenario =
+                scenarios.stream()
+                        .filter(scenario ->
+                                scenario.getName()
+                                        .equals("Invalid parameter: id"))
+                        .findFirst()
+                        .orElseThrow();
+
+        assertEquals(
+                "not-an-integer",
+                invalidScenario
+                        .getParameterValues()
+                        .get("id")
+        );
+
+        TestScenario boundaryScenario =
+                scenarios.stream()
+                        .filter(scenario ->
+                                scenario.getName()
+                                        .equals("Boundary value: id"))
+                        .findFirst()
+                        .orElseThrow();
+
+        assertEquals(
+                Integer.MAX_VALUE,
+                boundaryScenario
+                        .getParameterValues()
+                        .get("id")
         );
     }
 }
