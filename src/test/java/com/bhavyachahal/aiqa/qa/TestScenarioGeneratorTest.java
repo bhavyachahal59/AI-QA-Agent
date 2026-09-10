@@ -330,4 +330,93 @@ class TestScenarioGeneratorTest {
                         .get("id")
         );
     }
+
+    @Test
+    void shouldKeepGeneratedRequestPayloadsIndependent() {
+
+        ApiEndpoint endpoint = new ApiEndpoint();
+
+        endpoint.setPath("/users");
+        endpoint.setMethod("POST");
+
+        ApiRequestBody requestBody =
+                new ApiRequestBody(
+                        "application/json",
+                        "object",
+                        null
+                );
+
+        requestBody.setFields(
+                List.of(
+                        new ApiRequestBodyField(
+                                "name",
+                                "string",
+                                true,
+                                null
+                        ),
+                        new ApiRequestBodyField(
+                                "email",
+                                "string",
+                                true,
+                                "email"
+                        )
+                )
+        );
+
+        endpoint.setRequestBody(requestBody);
+
+        TestScenarioGenerator generator =
+                new TestScenarioGenerator();
+
+        List<TestScenario> scenarios =
+                generator.generate(endpoint);
+
+        TestScenario validScenario =
+                scenarios.stream()
+                        .filter(scenario ->
+                                scenario.getName()
+                                        .equals("Valid request"))
+                        .findFirst()
+                        .orElseThrow();
+
+        TestScenario invalidEmailScenario =
+                scenarios.stream()
+                        .filter(scenario ->
+                                scenario.getName()
+                                        .equals("Invalid email: email"))
+                        .findFirst()
+                        .orElseThrow();
+
+        assertEquals(
+                "sample-email",
+                validScenario
+                        .getRequestPayload()
+                        .getFields()
+                        .get("email")
+        );
+
+        assertEquals(
+                "invalid-email",
+                invalidEmailScenario
+                        .getRequestPayload()
+                        .getFields()
+                        .get("email")
+        );
+
+        assertEquals(
+                "sample-name",
+                validScenario
+                        .getRequestPayload()
+                        .getFields()
+                        .get("name")
+        );
+
+        assertEquals(
+                "sample-name",
+                invalidEmailScenario
+                        .getRequestPayload()
+                        .getFields()
+                        .get("name")
+        );
+    }
 }
