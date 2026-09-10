@@ -105,6 +105,190 @@ class ApiTestExecutorTest {
     }
 
     @Test
+    void shouldReplacePathParameter() {
+
+        RestClient.Builder restClientBuilder =
+                RestClient.builder();
+
+        MockRestServiceServer server =
+                MockRestServiceServer.bindTo(restClientBuilder)
+                        .build();
+
+        RestClient springRestClient =
+                restClientBuilder.build();
+
+        server.expect(
+                        requestTo("/users/123")
+                )
+                .andExpect(
+                        method(HttpMethod.GET)
+                )
+                .andRespond(
+                        withSuccess(
+                                "{\"id\":123,\"name\":\"Bhavya\"}",
+                                org.springframework.http.MediaType.APPLICATION_JSON
+                        )
+                );
+
+        ApiEndpoint endpoint =
+                new ApiEndpoint();
+
+        endpoint.setPath("/users/{id}");
+        endpoint.setMethod("GET");
+
+        endpoint.setResponses(
+                java.util.List.of(
+                        new com.bhavyachahal.aiqa.specification.model.ApiResponse(
+                                "200",
+                                "Successful response",
+                                "application/json",
+                                "object",
+                                null
+                        )
+                )
+        );
+
+        com.bhavyachahal.aiqa.specification.model.ApiParameter parameter =
+                new com.bhavyachahal.aiqa.specification.model.ApiParameter(
+                        "id",
+                        "path",
+                        true,
+                        "integer"
+                );
+
+        endpoint.setParameters(
+                java.util.List.of(parameter)
+        );
+
+        TestScenario scenario =
+                new TestScenario(
+                        "Valid user lookup",
+                        "Execute user lookup with valid ID",
+                        "POSITIVE"
+                );
+
+        scenario.addParameterValue(
+                "id",
+                123
+        );
+
+        ApiTestExecutor executor =
+                new ApiTestExecutor(
+                        springRestClient,
+                        new ResponseValidator()
+                );
+
+        TestExecutionResult result =
+                executor.execute(
+                        endpoint,
+                        scenario
+                );
+
+        assertEquals(
+                200,
+                result.getActualStatusCode()
+        );
+
+        assertTrue(
+                result.isSuccessful()
+        );
+
+        server.verify();
+    }
+
+    @Test
+    void shouldAddQueryParameter() {
+
+        RestClient.Builder restClientBuilder =
+                RestClient.builder();
+
+        MockRestServiceServer server =
+                MockRestServiceServer.bindTo(restClientBuilder)
+                        .build();
+
+        RestClient springRestClient =
+                restClientBuilder.build();
+
+        server.expect(
+                        requestTo("/users?status=active")
+                )
+                .andExpect(
+                        method(HttpMethod.GET)
+                )
+                .andRespond(
+                        withSuccess(
+                                "[{\"id\":123,\"name\":\"Bhavya\"}]",
+                                org.springframework.http.MediaType.APPLICATION_JSON
+                        )
+                );
+
+        ApiEndpoint endpoint =
+                new ApiEndpoint();
+
+        endpoint.setPath("/users");
+        endpoint.setMethod("GET");
+
+        endpoint.setResponses(
+                java.util.List.of(
+                        new com.bhavyachahal.aiqa.specification.model.ApiResponse(
+                                "200",
+                                "Successful response",
+                                "application/json",
+                                "array",
+                                null
+                        )
+                )
+        );
+
+        com.bhavyachahal.aiqa.specification.model.ApiParameter parameter =
+                new com.bhavyachahal.aiqa.specification.model.ApiParameter(
+                        "status",
+                        "query",
+                        true,
+                        "string"
+                );
+
+        endpoint.setParameters(
+                java.util.List.of(parameter)
+        );
+
+        TestScenario scenario =
+                new TestScenario(
+                        "Filter active users",
+                        "Execute user search with active status",
+                        "POSITIVE"
+                );
+
+        scenario.addParameterValue(
+                "status",
+                "active"
+        );
+
+        ApiTestExecutor executor =
+                new ApiTestExecutor(
+                        springRestClient,
+                        new ResponseValidator()
+                );
+
+        TestExecutionResult result =
+                executor.execute(
+                        endpoint,
+                        scenario
+                );
+
+        assertEquals(
+                200,
+                result.getActualStatusCode()
+        );
+
+        assertTrue(
+                result.isSuccessful()
+        );
+
+        server.verify();
+    }
+
+    @Test
     void shouldValidateDocumentedBadRequestResponse() {
 
         RestClient.Builder restClientBuilder =
@@ -273,9 +457,321 @@ class ApiTestExecutorTest {
                         "Execute valid request",
                         "POSITIVE"
                 );
+        scenario.setExpectedStatusCode("200");
 
         scenario.setRequestPayload(payload);
 
         return scenario;
+    }
+
+    @Test
+    void shouldAddHeaderParameter() {
+
+        RestClient.Builder restClientBuilder =
+                RestClient.builder();
+
+        MockRestServiceServer server =
+                MockRestServiceServer.bindTo(restClientBuilder)
+                        .build();
+
+        RestClient springRestClient =
+                restClientBuilder.build();
+
+        server.expect(
+                        requestTo("/users")
+                )
+                .andExpect(
+                        method(HttpMethod.GET)
+                )
+                .andExpect(
+                        org.springframework.test.web.client.match.MockRestRequestMatchers
+                                .header(
+                                        "X-API-Key",
+                                        "abc123"
+                                )
+                )
+                .andRespond(
+                        withSuccess(
+                                "{\"id\":123,\"name\":\"Bhavya\"}",
+                                org.springframework.http.MediaType.APPLICATION_JSON
+                        )
+                );
+
+        ApiEndpoint endpoint =
+                new ApiEndpoint();
+
+        endpoint.setPath("/users");
+        endpoint.setMethod("GET");
+
+        endpoint.setResponses(
+                java.util.List.of(
+                        new com.bhavyachahal.aiqa.specification.model.ApiResponse(
+                                "200",
+                                "Successful response",
+                                "application/json",
+                                "object",
+                                null
+                        )
+                )
+        );
+
+        com.bhavyachahal.aiqa.specification.model.ApiParameter parameter =
+                new com.bhavyachahal.aiqa.specification.model.ApiParameter(
+                        "X-API-Key",
+                        "header",
+                        true,
+                        "string"
+                );
+
+        endpoint.setParameters(
+                java.util.List.of(parameter)
+        );
+
+        TestScenario scenario =
+                new TestScenario(
+                        "Authenticated user lookup",
+                        "Execute user lookup with API key",
+                        "POSITIVE"
+                );
+
+        scenario.addParameterValue(
+                "X-API-Key",
+                "abc123"
+        );
+
+        ApiTestExecutor executor =
+                new ApiTestExecutor(
+                        springRestClient,
+                        new ResponseValidator()
+                );
+
+        TestExecutionResult result =
+                executor.execute(
+                        endpoint,
+                        scenario
+                );
+
+        assertEquals(
+                200,
+                result.getActualStatusCode()
+        );
+
+        assertTrue(
+                result.isSuccessful()
+        );
+
+        server.verify();
+    }
+
+    @Test
+    void shouldExecuteScenarioWithQueryParameter() {
+
+        RestClient.Builder restClientBuilder =
+                RestClient.builder();
+
+        MockRestServiceServer server =
+                MockRestServiceServer.bindTo(restClientBuilder)
+                        .build();
+
+        RestClient springRestClient =
+                restClientBuilder.build();
+
+        server.expect(
+                        requestTo("/users?limit=10")
+                )
+                .andExpect(
+                        method(HttpMethod.GET)
+                )
+                .andRespond(
+                        withSuccess(
+                                "{\"id\":1,\"name\":\"Bhavya\"}",
+                                org.springframework.http.MediaType.APPLICATION_JSON
+                        )
+                );
+
+        ApiEndpoint endpoint =
+                new ApiEndpoint();
+
+        endpoint.setPath("/users");
+
+        endpoint.setMethod("GET");
+
+        endpoint.setParameters(
+                java.util.List.of(
+                        new com.bhavyachahal.aiqa.specification.model.ApiParameter(
+                                "limit",
+                                "query",
+                                true,
+                                "integer"
+                        )
+                )
+        );
+
+        endpoint.setResponses(
+                java.util.List.of(
+                        new com.bhavyachahal.aiqa.specification.model.ApiResponse(
+                                "200",
+                                "Successful response",
+                                "application/json",
+                                "object",
+                                null
+                        )
+                )
+        );
+
+        TestScenario scenario =
+                new TestScenario(
+                        "Query parameter request",
+                        "Execute request with query parameter",
+                        "POSITIVE"
+                );
+        scenario.setExpectedStatusCode("200");
+
+        scenario.addParameterValue(
+                "limit",
+                10
+        );
+
+        ApiTestExecutor executor =
+                new ApiTestExecutor(
+                        springRestClient,
+                        new ResponseValidator()
+                );
+
+        TestExecutionResult result =
+                executor.execute(
+                        endpoint,
+                        scenario
+                );
+
+        assertEquals(
+                "Query parameter request",
+                result.getScenarioName()
+        );
+
+        assertEquals(
+                200,
+                result.getActualStatusCode()
+        );
+
+        assertEquals(
+                "200",
+                result.getExpectedStatusCode()
+        );
+
+        assertTrue(
+                result.isSuccessful()
+        );
+
+        server.verify();
+    }
+
+    @Test
+    void shouldExecuteScenarioWithHeaderParameter() {
+
+        RestClient.Builder restClientBuilder =
+                RestClient.builder();
+
+        MockRestServiceServer server =
+                MockRestServiceServer.bindTo(restClientBuilder)
+                        .build();
+
+        RestClient springRestClient =
+                restClientBuilder.build();
+
+        server.expect(
+                        requestTo("/users")
+                )
+                .andExpect(
+                        method(HttpMethod.GET)
+                )
+                .andExpect(
+                        org.springframework.test.web.client.match.MockRestRequestMatchers.header(
+                                "X-API-Key",
+                                "test-key"
+                        )
+                )
+                .andRespond(
+                        withSuccess(
+                                "{\"id\":1,\"name\":\"Bhavya\"}",
+                                org.springframework.http.MediaType.APPLICATION_JSON
+                        )
+                );
+
+        ApiEndpoint endpoint =
+                new ApiEndpoint();
+
+        endpoint.setPath("/users");
+
+        endpoint.setMethod("GET");
+
+        endpoint.setParameters(
+                java.util.List.of(
+                        new com.bhavyachahal.aiqa.specification.model.ApiParameter(
+                                "X-API-Key",
+                                "header",
+                                true,
+                                "string"
+                        )
+                )
+        );
+
+        endpoint.setResponses(
+                java.util.List.of(
+                        new com.bhavyachahal.aiqa.specification.model.ApiResponse(
+                                "200",
+                                "Successful response",
+                                "application/json",
+                                "object",
+                                null
+                        )
+                )
+        );
+
+        TestScenario scenario =
+                new TestScenario(
+                        "Header parameter request",
+                        "Execute request with API key header",
+                        "POSITIVE"
+                );
+        scenario.setExpectedStatusCode("200");
+
+        scenario.addParameterValue(
+                "X-API-Key",
+                "test-key"
+        );
+
+        ApiTestExecutor executor =
+                new ApiTestExecutor(
+                        springRestClient,
+                        new ResponseValidator()
+                );
+
+        TestExecutionResult result =
+                executor.execute(
+                        endpoint,
+                        scenario
+                );
+
+        assertEquals(
+                "Header parameter request",
+                result.getScenarioName()
+        );
+
+        assertEquals(
+                200,
+                result.getActualStatusCode()
+        );
+
+        assertEquals(
+                "200",
+                result.getExpectedStatusCode()
+        );
+
+        assertTrue(
+                result.isSuccessful()
+        );
+
+        server.verify();
     }
 }

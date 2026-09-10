@@ -3,6 +3,7 @@ package com.bhavyachahal.aiqa.qa;
 import com.bhavyachahal.aiqa.qa.model.TestExecutionResult;
 import com.bhavyachahal.aiqa.qa.model.TestScenario;
 import com.bhavyachahal.aiqa.specification.model.ApiEndpoint;
+import com.bhavyachahal.aiqa.specification.model.ApiParameter;
 import com.bhavyachahal.aiqa.specification.model.ApiResponse;
 
 import org.springframework.web.client.RestClient;
@@ -24,12 +25,43 @@ public class ApiTestExecutor {
             ApiEndpoint endpoint,
             TestScenario scenario) {
 
+        String uri =
+                buildUri(
+                        endpoint,
+                        scenario
+                );
+
         RestClient.RequestBodySpec request =
                 restClient.method(
                         org.springframework.http.HttpMethod.valueOf(
                                 endpoint.getMethod()
                         )
-                ).uri(endpoint.getPath());
+                ).uri(uri);
+
+        if (endpoint.getParameters() != null) {
+
+            for (ApiParameter parameter :
+                    endpoint.getParameters()) {
+
+                if (!"header".equalsIgnoreCase(
+                        parameter.getLocation())) {
+
+                    continue;
+                }
+
+                Object value =
+                        scenario.getParameterValues()
+                                .get(parameter.getName());
+
+                if (value != null) {
+
+                    request.header(
+                            parameter.getName(),
+                            String.valueOf(value)
+                    );
+                }
+            }
+        }
 
         if (scenario.getRequestPayload() != null) {
 
@@ -49,6 +81,7 @@ public class ApiTestExecutor {
             ApiResponse expectedResponse =
                     findExpectedResponse(
                             endpoint,
+                            scenario,
                             actualStatusCode
                     );
 
@@ -73,11 +106,60 @@ public class ApiTestExecutor {
         });
     }
 
+    private String buildUri(
+            ApiEndpoint endpoint,
+            TestScenario scenario) {
+
+        String uri = endpoint.getPath();
+
+        if (endpoint.getParameters() == null) {
+            return uri;
+        }
+
+        for (ApiParameter parameter :
+                endpoint.getParameters()) {
+
+            Object value =
+                    scenario.getParameterValues()
+                            .get(parameter.getName());
+
+            if (value == null) {
+                continue;
+            }
+
+            if ("path".equalsIgnoreCase(
+                    parameter.getLocation())) {
+
+                uri = uri.replace(
+                        "{" + parameter.getName() + "}",
+                        String.valueOf(value)
+                );
+            }
+
+            if ("query".equalsIgnoreCase(
+                    parameter.getLocation())) {
+
+                String separator =
+                        uri.contains("?") ? "&" : "?";
+
+                uri = uri
+                        + separator
+                        + parameter.getName()
+                        + "="
+                        + String.valueOf(value);
+            }
+        }
+
+        return uri;
+    }
+
     private ApiResponse findExpectedResponse(
             ApiEndpoint endpoint,
+            TestScenario scenario,
             int actualStatusCode) {
 
-        if (endpoint.getResponses() == null) {
+        if (endpoint.getResponses() == null
+                || endpoint.getResponses().isEmpty()) {
             return null;
         }
 
