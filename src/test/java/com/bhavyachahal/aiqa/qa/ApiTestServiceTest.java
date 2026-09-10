@@ -1,8 +1,8 @@
 package com.bhavyachahal.aiqa.qa;
 
 import com.bhavyachahal.aiqa.qa.model.TestExecutionResult;
-import com.bhavyachahal.aiqa.qa.model.TestScenario;
 import com.bhavyachahal.aiqa.specification.model.ApiEndpoint;
+import com.bhavyachahal.aiqa.specification.model.ApiResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -11,6 +11,7 @@ import org.springframework.web.client.RestClient;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.client.ExpectedCount.twice;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
@@ -52,7 +53,20 @@ class ApiTestServiceTest {
         endpoint.setPath("/users");
         endpoint.setMethod("GET");
 
+        endpoint.setResponses(
+                List.of(
+                        new ApiResponse(
+                                "200",
+                                "Successful response",
+                                "application/json",
+                                null,
+                                null
+                        )
+                )
+        );
+
         server.expect(
+                        twice(),
                         requestTo("/users")
                 )
                 .andExpect(
@@ -66,8 +80,38 @@ class ApiTestServiceTest {
                 service.executeEndpoint(endpoint);
 
         assertEquals(
-                1,
+                2,
                 results.size()
+        );
+
+        assertEquals(
+                "Valid request",
+                results.get(0).getScenarioName()
+        );
+
+        assertEquals(
+                200,
+                results.get(0).getActualStatusCode()
+        );
+
+        assertEquals(
+                true,
+                results.get(0).isSuccessful()
+        );
+
+        assertEquals(
+                "Expected response",
+                results.get(1).getScenarioName()
+        );
+
+        assertEquals(
+                200,
+                results.get(1).getActualStatusCode()
+        );
+
+        assertEquals(
+                true,
+                results.get(1).isSuccessful()
         );
 
         server.verify();
