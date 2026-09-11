@@ -486,6 +486,16 @@ public class TestScenarioGenerator {
                             && !"email".equalsIgnoreCase(
                             field.getFormat())) {
 
+                        if (field.getPattern() != null
+                                && !field.getPattern().isBlank()) {
+
+                            addPatternValidationScenario(
+                                    endpoint,
+                                    field,
+                                    scenarios
+                            );
+                        }
+
                         if (field.getMinLength() != null
                                 || field.getMaxLength() != null) {
 
@@ -519,6 +529,59 @@ public class TestScenarioGenerator {
                         }
                     }
                 });
+    }
+
+    private void addPatternValidationScenario(
+            ApiEndpoint endpoint,
+            ApiRequestBodyField field,
+            List<TestScenario> scenarios) {
+
+        String invalidValue =
+                generatePatternViolatingValue(
+                        field.getPattern()
+                );
+
+        TestScenario scenario =
+                createStringPayloadScenario(
+                        endpoint,
+                        field,
+                        "Invalid pattern: "
+                                + field.getName(),
+                        "Verify the endpoint rejects a value that does not match the required pattern "
+                                + "for request body field '"
+                                + field.getName()
+                                + "'",
+                        "VALIDATION",
+                        invalidValue
+                );
+
+        scenario.setExpectedStatusCode(
+                findClientErrorStatusCode(endpoint)
+        );
+
+        scenarios.add(scenario);
+    }
+
+    private String generatePatternViolatingValue(
+            String pattern) {
+
+        List<String> candidates =
+                List.of(
+                        "invalid value!",
+                        "###",
+                        " ",
+                        "invalid@value",
+                        "123-INVALID!"
+                );
+
+        for (String candidate : candidates) {
+
+            if (!candidate.matches(pattern)) {
+                return candidate;
+            }
+        }
+
+        return "invalid value!";
     }
 
     private void addIntegerScenarios(
@@ -849,32 +912,75 @@ public class TestScenarioGenerator {
     private String generateBaselineStringValue(
             ApiRequestBodyField field) {
 
-        String value =
-                "sample-" + field.getName();
+        if (field.getPattern() == null
+                || field.getPattern().isBlank()) {
 
-        if (field.getMaxLength() != null
-                && field.getMaxLength() == 0) {
+            return adjustStringLength(
+                    "sample-" + field.getName(),
+                    field.getMinLength(),
+                    field.getMaxLength()
+            );
+        }
+
+        List<String> candidates =
+                List.of(
+                        "sample_" + field.getName(),
+                        "sample",
+                        "test123",
+                        "abc",
+                        "A1"
+                );
+
+        for (String candidate : candidates) {
+
+            String adjustedCandidate =
+                    adjustStringLength(
+                            candidate,
+                            field.getMinLength(),
+                            field.getMaxLength()
+                    );
+
+            if (adjustedCandidate.matches(
+                    field.getPattern()
+            )) {
+
+                return adjustedCandidate;
+            }
+        }
+
+        return adjustStringLength(
+                "a",
+                field.getMinLength(),
+                field.getMaxLength()
+        );
+    }
+    private String adjustStringLength(
+            String value,
+            Integer minLength,
+            Integer maxLength) {
+
+        if (maxLength != null
+                && maxLength == 0) {
 
             return "";
         }
 
-        if (field.getMinLength() != null
-                && value.length()
-                < field.getMinLength()) {
+        if (minLength != null
+                && value.length() < minLength) {
 
             value =
-                    "a".repeat(
-                            field.getMinLength()
+                    value + "a".repeat(
+                            minLength - value.length()
                     );
         }
 
-        if (field.getMaxLength() != null
-                && value.length()
-                > field.getMaxLength()) {
+        if (maxLength != null
+                && value.length() > maxLength) {
 
             value =
-                    "a".repeat(
-                            field.getMaxLength()
+                    value.substring(
+                            0,
+                            maxLength
                     );
         }
 

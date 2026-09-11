@@ -861,4 +861,174 @@ class TestScenarioGeneratorTest {
                 aboveMaximum.getExpectedStatusCode()
         );
     }
+
+    @Test
+    void shouldGeneratePatternValidationScenario() {
+
+        ApiEndpoint endpoint =
+                new ApiEndpoint();
+
+        endpoint.setPath("/users");
+        endpoint.setMethod("POST");
+
+        ApiRequestBody requestBody =
+                new ApiRequestBody(
+                        "application/json",
+                        "object",
+                        null
+                );
+
+        ApiRequestBodyField usernameField =
+                new ApiRequestBodyField(
+                        "username",
+                        "string",
+                        true,
+                        null
+                );
+
+        usernameField.setPattern(
+                "^[a-zA-Z0-9_]+$"
+        );
+
+        requestBody.setFields(
+                List.of(usernameField)
+        );
+
+        endpoint.setRequestBody(
+                requestBody
+        );
+
+        endpoint.setResponses(
+                List.of(
+                        new ApiResponse(
+                                "201",
+                                "Created",
+                                "application/json",
+                                null,
+                                null
+                        ),
+                        new ApiResponse(
+                                "400",
+                                "Bad request",
+                                "application/json",
+                                null,
+                                null
+                        )
+                )
+        );
+
+        TestScenarioGenerator generator =
+                new TestScenarioGenerator();
+
+        List<TestScenario> scenarios =
+                generator.generate(endpoint);
+
+        TestScenario patternScenario =
+                scenarios.stream()
+                        .filter(scenario ->
+                                scenario.getName()
+                                        .equals(
+                                                "Invalid pattern: username"
+                                        ))
+                        .findFirst()
+                        .orElseThrow();
+
+        String value =
+                (String) patternScenario
+                        .getRequestPayload()
+                        .getFields()
+                        .get("username");
+
+        assertEquals(
+                "invalid value!",
+                value
+        );
+
+        assertEquals(
+                "400",
+                patternScenario.getExpectedStatusCode()
+        );
+    }
+
+    @Test
+    void shouldGenerateBaselineStringThatMatchesPattern() {
+
+        ApiEndpoint endpoint =
+                new ApiEndpoint();
+
+        endpoint.setPath("/users");
+        endpoint.setMethod("POST");
+
+        ApiRequestBody requestBody =
+                new ApiRequestBody(
+                        "application/json",
+                        "object",
+                        null
+                );
+
+        ApiRequestBodyField usernameField =
+                new ApiRequestBodyField(
+                        "username",
+                        "string",
+                        true,
+                        null
+                );
+
+        usernameField.setPattern(
+                "^[a-zA-Z0-9_]+$"
+        );
+
+        requestBody.setFields(
+                List.of(usernameField)
+        );
+
+        endpoint.setRequestBody(
+                requestBody
+        );
+
+        endpoint.setResponses(
+                List.of(
+                        new ApiResponse(
+                                "201",
+                                "Created",
+                                "application/json",
+                                null,
+                                null
+                        ),
+                        new ApiResponse(
+                                "400",
+                                "Bad request",
+                                "application/json",
+                                null,
+                                null
+                        )
+                )
+        );
+
+        TestScenarioGenerator generator =
+                new TestScenarioGenerator();
+
+        List<TestScenario> scenarios =
+                generator.generate(endpoint);
+
+        TestScenario validRequest =
+                scenarios.stream()
+                        .filter(scenario ->
+                                scenario.getName()
+                                        .equals("Valid request"))
+                        .findFirst()
+                        .orElseThrow();
+
+        String username =
+                (String) validRequest
+                        .getRequestPayload()
+                        .getFields()
+                        .get("username");
+
+        assertTrue(
+                username.matches(
+                        usernameField.getPattern()
+                )
+        );
+    }
 }
