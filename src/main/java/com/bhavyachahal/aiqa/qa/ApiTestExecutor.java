@@ -4,7 +4,6 @@ import com.bhavyachahal.aiqa.qa.model.TestExecutionResult;
 import com.bhavyachahal.aiqa.qa.model.TestScenario;
 import com.bhavyachahal.aiqa.specification.model.ApiEndpoint;
 import com.bhavyachahal.aiqa.specification.model.ApiParameter;
-import com.bhavyachahal.aiqa.specification.model.ApiResponse;
 
 import org.springframework.web.client.RestClient;
 
@@ -78,24 +77,13 @@ public class ApiTestExecutor {
             int actualStatusCode =
                     clientResponse.getStatusCode().value();
 
-            ApiResponse expectedResponse =
-                    findExpectedResponse(
-                            endpoint,
-                            scenario,
-                            actualStatusCode
-                    );
-
             String expectedStatusCode =
-                    scenario.getExpectedStatusCode() != null
-                            ? scenario.getExpectedStatusCode()
-                            : expectedResponse != null
-                            ? expectedResponse.getStatusCode()
-                            : null;
+                    scenario.getExpectedStatusCode();
 
             boolean successful =
                     responseValidator.validateStatusCode(
                             actualStatusCode,
-                            expectedResponse
+                            expectedStatusCode
                     );
 
             return new TestExecutionResult(
@@ -153,38 +141,5 @@ public class ApiTestExecutor {
         }
 
         return uri;
-    }
-
-    private ApiResponse findExpectedResponse(
-            ApiEndpoint endpoint,
-            TestScenario scenario,
-            int actualStatusCode) {
-
-        if (endpoint.getResponses() == null
-                || endpoint.getResponses().isEmpty()) {
-
-            return null;
-        }
-
-        if (scenario.getExpectedStatusCode() != null) {
-
-            return endpoint.getResponses()
-                    .stream()
-                    .filter(response ->
-                            scenario.getExpectedStatusCode()
-                                    .equals(response.getStatusCode())
-                    )
-                    .findFirst()
-                    .orElse(null);
-        }
-
-        return endpoint.getResponses()
-                .stream()
-                .filter(response ->
-                        String.valueOf(actualStatusCode)
-                                .equals(response.getStatusCode())
-                )
-                .findFirst()
-                .orElse(null);
     }
 }

@@ -1,6 +1,5 @@
 package com.bhavyachahal.aiqa.qa;
 
-import com.bhavyachahal.aiqa.specification.model.ApiResponse;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -9,16 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ResponseValidatorTest {
 
     @Test
-    void shouldPassWhenStatusCodeMatchesExpectedResponse() {
-
-        ApiResponse expectedResponse =
-                new ApiResponse(
-                        "201",
-                        "User created",
-                        "application/json",
-                        "object",
-                        "User"
-                );
+    void shouldPassWhenStatusCodeMatchesExpectedStatusCode() {
 
         ResponseValidator validator =
                 new ResponseValidator();
@@ -26,22 +16,13 @@ class ResponseValidatorTest {
         assertTrue(
                 validator.validateStatusCode(
                         201,
-                        expectedResponse
+                        "201"
                 )
         );
     }
 
     @Test
-    void shouldFailWhenStatusCodeDoesNotMatchExpectedResponse() {
-
-        ApiResponse expectedResponse =
-                new ApiResponse(
-                        "201",
-                        "User created",
-                        "application/json",
-                        "object",
-                        "User"
-                );
+    void shouldFailWhenStatusCodeDoesNotMatchExpectedStatusCode() {
 
         ResponseValidator validator =
                 new ResponseValidator();
@@ -49,7 +30,21 @@ class ResponseValidatorTest {
         assertFalse(
                 validator.validateStatusCode(
                         400,
-                        expectedResponse
+                        "201"
+                )
+        );
+    }
+
+    @Test
+    void shouldFailWhenExpectedStatusCodeIsMissing() {
+
+        ResponseValidator validator =
+                new ResponseValidator();
+
+        assertFalse(
+                validator.validateStatusCode(
+                        200,
+                        null
                 )
         );
     }
