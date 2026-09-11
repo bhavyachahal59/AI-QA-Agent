@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -211,5 +212,134 @@ class OpenApiSpecificationParserTest {
                     inputStream.readAllBytes()
             );
         }
+    }
+
+    @Test
+    void shouldParseSchemaConstraints() {
+
+        String openApiContent = """
+            openapi: 3.0.3
+            info:
+              title: Constraint API
+              version: 1.0.0
+
+            paths:
+              /users:
+                post:
+                  parameters:
+                    - name: limit
+                      in: query
+                      required: true
+                      schema:
+                        type: integer
+                        minimum: 1
+                        maximum: 100
+
+                  requestBody:
+                    required: true
+                    content:
+                      application/json:
+                        schema:
+                          type: object
+                          required:
+                            - username
+                            - age
+                          properties:
+                            username:
+                              type: string
+                              minLength: 3
+                              maxLength: 20
+                              pattern: "^[a-zA-Z0-9_]+$"
+
+                            age:
+                              type: integer
+                              minimum: 18
+                              maximum: 120
+
+                  responses:
+                    '201':
+                      description: Created
+            """;
+
+        OpenApiSpecificationParser parser =
+                new OpenApiSpecificationParser();
+
+        List<ApiEndpoint> endpoints =
+                parser.parseEndpoints(
+                        openApiContent,
+                        UUID.randomUUID()
+                );
+
+        assertEquals(
+                1,
+                endpoints.size()
+        );
+
+        ApiEndpoint endpoint =
+                endpoints.get(0);
+
+        ApiParameter limitParameter =
+                endpoint.getParameters()
+                        .stream()
+                        .filter(parameter ->
+                                parameter.getName()
+                                        .equals("limit"))
+                        .findFirst()
+                        .orElseThrow();
+
+        assertEquals(
+                new java.math.BigDecimal("1"),
+                limitParameter.getMinimum()
+        );
+
+        assertEquals(
+                new java.math.BigDecimal("100"),
+                limitParameter.getMaximum()
+        );
+
+        ApiRequestBodyField usernameField =
+                endpoint.getRequestBody()
+                        .getFields()
+                        .stream()
+                        .filter(field ->
+                                field.getName()
+                                        .equals("username"))
+                        .findFirst()
+                        .orElseThrow();
+
+        assertEquals(
+                3,
+                usernameField.getMinLength()
+        );
+
+        assertEquals(
+                20,
+                usernameField.getMaxLength()
+        );
+
+        assertEquals(
+                "^[a-zA-Z0-9_]+$",
+                usernameField.getPattern()
+        );
+
+        ApiRequestBodyField ageField =
+                endpoint.getRequestBody()
+                        .getFields()
+                        .stream()
+                        .filter(field ->
+                                field.getName()
+                                        .equals("age"))
+                        .findFirst()
+                        .orElseThrow();
+
+        assertEquals(
+                new java.math.BigDecimal("18"),
+                ageField.getMinimum()
+        );
+
+        assertEquals(
+                new java.math.BigDecimal("120"),
+                ageField.getMaximum()
+        );
     }
 }

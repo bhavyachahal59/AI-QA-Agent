@@ -1,11 +1,19 @@
 package com.bhavyachahal.aiqa.specification.model;
 
+import java.math.BigDecimal;
+
 public class ApiRequestBodyField {
 
     private String name;
     private String type;
     private boolean required;
     private String format;
+
+    private BigDecimal minimum;
+    private BigDecimal maximum;
+    private Integer minLength;
+    private Integer maxLength;
+    private String pattern;
 
     public ApiRequestBodyField() {
     }
@@ -15,6 +23,7 @@ public class ApiRequestBodyField {
             String type,
             boolean required,
             String format) {
+
         this.name = name;
         this.type = type;
         this.required = required;
@@ -51,5 +60,45 @@ public class ApiRequestBodyField {
 
     public void setFormat(String format) {
         this.format = format;
+    }
+
+    public BigDecimal getMinimum() {
+        return minimum;
+    }
+
+    public void setMinimum(BigDecimal minimum) {
+        this.minimum = minimum;
+    }
+
+    public BigDecimal getMaximum() {
+        return maximum;
+    }
+
+    public void setMaximum(BigDecimal maximum) {
+        this.maximum = maximum;
+    }
+
+    public Integer getMinLength() {
+        return minLength;
+    }
+
+    public void setMinLength(Integer minLength) {
+        this.minLength = minLength;
+    }
+
+    public Integer getMaxLength() {
+        return maxLength;
+    }
+
+    public void setMaxLength(Integer maxLength) {
+        this.maxLength = maxLength;
+    }
+
+    public String getPattern() {
+        return pattern;
+    }
+
+    public void setPattern(String pattern) {
+        this.pattern = pattern;
     }
 }

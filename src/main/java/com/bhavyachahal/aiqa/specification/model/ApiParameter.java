@@ -1,11 +1,19 @@
 package com.bhavyachahal.aiqa.specification.model;
 
+import java.math.BigDecimal;
+
 public class ApiParameter {
 
     private String name;
     private String location;
     private boolean required;
     private String type;
+
+    private BigDecimal minimum;
+    private BigDecimal maximum;
+    private Integer minLength;
+    private Integer maxLength;
+    private String pattern;
 
     public ApiParameter() {
     }
@@ -15,6 +23,7 @@ public class ApiParameter {
             String location,
             boolean required,
             String type) {
+
         this.name = name;
         this.location = location;
         this.required = required;
@@ -51,5 +60,45 @@ public class ApiParameter {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public BigDecimal getMinimum() {
+        return minimum;
+    }
+
+    public void setMinimum(BigDecimal minimum) {
+        this.minimum = minimum;
+    }
+
+    public BigDecimal getMaximum() {
+        return maximum;
+    }
+
+    public void setMaximum(BigDecimal maximum) {
+        this.maximum = maximum;
+    }
+
+    public Integer getMinLength() {
+        return minLength;
+    }
+
+    public void setMinLength(Integer minLength) {
+        this.minLength = minLength;
+    }
+
+    public Integer getMaxLength() {
+        return maxLength;
+    }
+
+    public void setMaxLength(Integer maxLength) {
+        this.maxLength = maxLength;
+    }
+
+    public String getPattern() {
+        return pattern;
+    }
+
+    public void setPattern(String pattern) {
+        this.pattern = pattern;
     }
 }
