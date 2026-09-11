@@ -11,6 +11,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -290,5 +292,121 @@ class TestReportGeneratorTest {
         assertTrue(
                 summary.contains("Actual: 200")
         );
+    }
+
+    @Test
+    void shouldGenerateMarkdownReport() {
+
+        TestReport report =
+                new TestReport();
+
+        report.addResult(
+                new TestExecutionResult(
+                        "Valid request",
+                        200,
+                        "200",
+                        "{\"id\":1}",
+                        true
+                )
+        );
+
+        report.addResult(
+                new TestExecutionResult(
+                        "Missing required parameter: username",
+                        200,
+                        "400",
+                        "{\"id\":1}",
+                        false
+                )
+        );
+
+        String markdown =
+                report.toMarkdown();
+
+        assertTrue(
+                markdown.contains("# API Test Report")
+        );
+
+        assertTrue(
+                markdown.contains("## Summary")
+        );
+
+        assertTrue(
+                markdown.contains("- Total: 2")
+        );
+
+        assertTrue(
+                markdown.contains("- Passed: 1")
+        );
+
+        assertTrue(
+                markdown.contains("- Failed: 1")
+        );
+
+        assertTrue(
+                markdown.contains("- Pass rate: 50.0%")
+        );
+
+        assertTrue(
+                markdown.contains("## Results")
+        );
+
+        assertTrue(
+                markdown.contains(
+                        "### PASS — Valid request"
+                )
+        );
+
+        assertTrue(
+                markdown.contains(
+                        "### FAIL — Missing required parameter: username"
+                )
+        );
+
+        assertTrue(
+                markdown.contains("- Expected status: 400")
+        );
+
+        assertTrue(
+                markdown.contains("- Actual status: 200")
+        );
+    }
+
+    @Test
+    void shouldWriteMarkdownReportToFile() throws Exception {
+
+        TestReport report =
+                new TestReport();
+
+        report.addResult(
+                new TestExecutionResult(
+                        "Valid request",
+                        200,
+                        "200",
+                        "{\"id\":1}",
+                        true
+                )
+        );
+
+        Path outputPath =
+                Files.createTempFile(
+                        "api-test-report",
+                        ".md"
+                );
+
+        report.writeMarkdown(outputPath);
+
+        String content =
+                Files.readString(outputPath);
+
+        assertTrue(
+                content.contains("# API Test Report")
+        );
+
+        assertTrue(
+                content.contains("### PASS — Valid request")
+        );
+
+        Files.deleteIfExists(outputPath);
     }
 }

@@ -2,6 +2,9 @@ package com.bhavyachahal.aiqa.qa;
 
 import com.bhavyachahal.aiqa.qa.model.TestExecutionResult;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -94,5 +97,74 @@ public class TestReport {
         }
 
         return builder.toString();
+    }
+
+    public String toMarkdown() {
+
+        StringBuilder builder =
+                new StringBuilder();
+
+        builder.append("# API Test Report\n\n");
+
+        builder.append("## Summary\n\n");
+
+        builder.append("- Total: ")
+                .append(getTotalTests())
+                .append("\n");
+
+        builder.append("- Passed: ")
+                .append(getPassedTests())
+                .append("\n");
+
+        builder.append("- Failed: ")
+                .append(getFailedTests())
+                .append("\n");
+
+        builder.append("- Pass rate: ")
+                .append(String.format("%.1f", getPassRate()))
+                .append("%\n\n");
+
+        builder.append("## Results\n\n");
+
+        for (TestExecutionResult result : results) {
+
+            builder.append("### ")
+                    .append(
+                            result.isSuccessful()
+                                    ? "PASS"
+                                    : "FAIL"
+                    )
+                    .append(" — ")
+                    .append(result.getScenarioName())
+                    .append("\n\n");
+
+            builder.append("- Expected status: ")
+                    .append(result.getExpectedStatusCode())
+                    .append("\n");
+
+            builder.append("- Actual status: ")
+                    .append(result.getActualStatusCode())
+                    .append("\n");
+
+            if (result.getResponseBody() != null
+                    && !result.getResponseBody().isBlank()) {
+
+                builder.append("- Response body: `")
+                        .append(result.getResponseBody())
+                        .append("`\n");
+            }
+
+            builder.append("\n");
+        }
+
+        return builder.toString();
+    }
+
+    public void writeMarkdown(Path outputPath) throws IOException {
+
+        Files.writeString(
+                outputPath,
+                toMarkdown()
+        );
     }
 }
