@@ -5,6 +5,7 @@ import com.bhavyachahal.aiqa.qa.model.TestScenario;
 import com.bhavyachahal.aiqa.specification.model.ApiEndpoint;
 import com.bhavyachahal.aiqa.specification.model.ApiRequestBody;
 import com.bhavyachahal.aiqa.specification.model.ApiRequestBodyField;
+import com.bhavyachahal.aiqa.specification.model.ApiResponse;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -699,6 +700,165 @@ class TestScenarioGeneratorTest {
         assertEquals(
                 "400",
                 aboveMaximumScenario.getExpectedStatusCode()
+        );
+    }
+
+    @Test
+    void shouldGenerateSchemaAwareStringLengthBoundaryScenarios() {
+
+        ApiEndpoint endpoint =
+                new ApiEndpoint();
+
+        endpoint.setPath("/users");
+        endpoint.setMethod("POST");
+
+        ApiRequestBody requestBody =
+                new ApiRequestBody(
+                        "application/json",
+                        "object",
+                        null
+                );
+
+        ApiRequestBodyField usernameField =
+                new ApiRequestBodyField(
+                        "username",
+                        "string",
+                        true,
+                        null
+                );
+
+        usernameField.setMinLength(3);
+        usernameField.setMaxLength(20);
+
+        requestBody.setFields(
+                List.of(usernameField)
+        );
+
+        endpoint.setRequestBody(requestBody);
+
+        endpoint.setResponses(
+                List.of(
+                        new ApiResponse(
+                                "201",
+                                "Created",
+                                "application/json",
+                                null,
+                                null
+                        ),
+                        new ApiResponse(
+                                "400",
+                                "Bad request",
+                                "application/json",
+                                null,
+                                null
+                        )
+                )
+        );
+
+        TestScenarioGenerator generator =
+                new TestScenarioGenerator();
+
+        List<TestScenario> scenarios =
+                generator.generate(endpoint);
+
+        TestScenario belowMinimum =
+                scenarios.stream()
+                        .filter(scenario ->
+                                scenario.getName().equals(
+                                        "Below minimum length: username"
+                                ))
+                        .findFirst()
+                        .orElseThrow();
+
+        String belowMinimumValue =
+                (String) belowMinimum
+                        .getRequestPayload()
+                        .getFields()
+                        .get("username");
+
+        assertEquals(
+                2,
+                belowMinimumValue.length()
+        );
+
+        assertEquals(
+                "400",
+                belowMinimum.getExpectedStatusCode()
+        );
+
+        TestScenario minimumBoundary =
+                scenarios.stream()
+                        .filter(scenario ->
+                                scenario.getName().equals(
+                                        "Minimum length: username"
+                                ))
+                        .findFirst()
+                        .orElseThrow();
+
+        String minimumValue =
+                (String) minimumBoundary
+                        .getRequestPayload()
+                        .getFields()
+                        .get("username");
+
+        assertEquals(
+                3,
+                minimumValue.length()
+        );
+
+        assertEquals(
+                "201",
+                minimumBoundary.getExpectedStatusCode()
+        );
+
+        TestScenario maximumBoundary =
+                scenarios.stream()
+                        .filter(scenario ->
+                                scenario.getName().equals(
+                                        "Maximum length: username"
+                                ))
+                        .findFirst()
+                        .orElseThrow();
+
+        String maximumValue =
+                (String) maximumBoundary
+                        .getRequestPayload()
+                        .getFields()
+                        .get("username");
+
+        assertEquals(
+                20,
+                maximumValue.length()
+        );
+
+        assertEquals(
+                "201",
+                maximumBoundary.getExpectedStatusCode()
+        );
+
+        TestScenario aboveMaximum =
+                scenarios.stream()
+                        .filter(scenario ->
+                                scenario.getName().equals(
+                                        "Above maximum length: username"
+                                ))
+                        .findFirst()
+                        .orElseThrow();
+
+        String aboveMaximumValue =
+                (String) aboveMaximum
+                        .getRequestPayload()
+                        .getFields()
+                        .get("username");
+
+        assertEquals(
+                21,
+                aboveMaximumValue.length()
+        );
+
+        assertEquals(
+                "400",
+                aboveMaximum.getExpectedStatusCode()
         );
     }
 }

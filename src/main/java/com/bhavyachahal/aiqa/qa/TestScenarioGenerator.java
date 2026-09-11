@@ -486,36 +486,37 @@ public class TestScenarioGenerator {
                             && !"email".equalsIgnoreCase(
                             field.getFormat())) {
 
-                        TestScenario scenario =
-                                new TestScenario(
-                                        "Empty string: "
-                                                + field.getName(),
-                                        "Verify the endpoint validates an empty string "
-                                                + "for request body field '"
-                                                + field.getName()
-                                                + "'",
-                                        "VALIDATION"
-                                );
+                        if (field.getMinLength() != null
+                                || field.getMaxLength() != null) {
 
-                        RequestPayload payload =
-                                generateBaselinePayload(
-                                        endpoint.getRequestBody()
-                                ).copy();
+                            addSchemaAwareStringLengthScenarios(
+                                    endpoint,
+                                    field,
+                                    scenarios
+                            );
 
-                        payload.addField(
-                                field.getName(),
-                                ""
-                        );
+                        } else {
 
-                        scenario.setRequestPayload(
-                                payload
-                        );
+                            TestScenario scenario =
+                                    createStringPayloadScenario(
+                                            endpoint,
+                                            field,
+                                            "Empty string: "
+                                                    + field.getName(),
+                                            "Verify the endpoint validates an empty string "
+                                                    + "for request body field '"
+                                                    + field.getName()
+                                                    + "'",
+                                            "VALIDATION",
+                                            ""
+                                    );
 
-                        scenario.setExpectedStatusCode(
-                                findClientErrorStatusCode(endpoint)
-                        );
+                            scenario.setExpectedStatusCode(
+                                    findClientErrorStatusCode(endpoint)
+                            );
 
-                        scenarios.add(scenario);
+                            scenarios.add(scenario);
+                        }
                     }
                 });
     }
@@ -851,23 +852,30 @@ public class TestScenarioGenerator {
         String value =
                 "sample-" + field.getName();
 
+        if (field.getMaxLength() != null
+                && field.getMaxLength() == 0) {
+
+            return "";
+        }
+
         if (field.getMinLength() != null
                 && value.length()
                 < field.getMinLength()) {
 
-            return "a".repeat(
-                    field.getMinLength()
-            );
+            value =
+                    "a".repeat(
+                            field.getMinLength()
+                    );
         }
 
         if (field.getMaxLength() != null
                 && value.length()
                 > field.getMaxLength()) {
 
-            return value.substring(
-                    0,
-                    field.getMaxLength()
-            );
+            value =
+                    "a".repeat(
+                            field.getMaxLength()
+                    );
         }
 
         return value;
@@ -917,5 +925,154 @@ public class TestScenarioGenerator {
                 )
                 .findFirst()
                 .orElse(null);
+    }
+
+    private void addSchemaAwareStringLengthScenarios(
+            ApiEndpoint endpoint,
+            ApiRequestBodyField field,
+            List<TestScenario> scenarios) {
+
+        if (field.getMinLength() != null) {
+
+            int minLength =
+                    field.getMinLength();
+
+            if (minLength > 0) {
+
+                TestScenario belowMinimumScenario =
+                        createStringPayloadScenario(
+                                endpoint,
+                                field,
+                                "Below minimum length: "
+                                        + field.getName(),
+                                "Verify the endpoint rejects a string shorter than the minimum length "
+                                        + "for request body field '"
+                                        + field.getName()
+                                        + "'",
+                                "VALIDATION",
+                                "a".repeat(
+                                        minLength - 1
+                                )
+                        );
+
+                belowMinimumScenario.setExpectedStatusCode(
+                        findClientErrorStatusCode(endpoint)
+                );
+
+                scenarios.add(
+                        belowMinimumScenario
+                );
+            }
+
+            TestScenario minimumBoundaryScenario =
+                    createStringPayloadScenario(
+                            endpoint,
+                            field,
+                            "Minimum length: "
+                                    + field.getName(),
+                            "Verify the endpoint accepts a string at the minimum allowed length "
+                                    + "for request body field '"
+                                    + field.getName()
+                                    + "'",
+                            "BOUNDARY",
+                            "a".repeat(
+                                    minLength
+                            )
+                    );
+
+            minimumBoundaryScenario.setExpectedStatusCode(
+                    findSuccessStatusCode(endpoint)
+            );
+
+            scenarios.add(
+                    minimumBoundaryScenario
+            );
+        }
+
+        if (field.getMaxLength() != null) {
+
+            int maxLength =
+                    field.getMaxLength();
+
+            TestScenario maximumBoundaryScenario =
+                    createStringPayloadScenario(
+                            endpoint,
+                            field,
+                            "Maximum length: "
+                                    + field.getName(),
+                            "Verify the endpoint accepts a string at the maximum allowed length "
+                                    + "for request body field '"
+                                    + field.getName()
+                                    + "'",
+                            "BOUNDARY",
+                            "a".repeat(
+                                    maxLength
+                            )
+                    );
+
+            maximumBoundaryScenario.setExpectedStatusCode(
+                    findSuccessStatusCode(endpoint)
+            );
+
+            scenarios.add(
+                    maximumBoundaryScenario
+            );
+
+            TestScenario aboveMaximumScenario =
+                    createStringPayloadScenario(
+                            endpoint,
+                            field,
+                            "Above maximum length: "
+                                    + field.getName(),
+                            "Verify the endpoint rejects a string longer than the maximum length "
+                                    + "for request body field '"
+                                    + field.getName()
+                                    + "'",
+                            "VALIDATION",
+                            "a".repeat(
+                                    maxLength + 1
+                            )
+                    );
+
+            aboveMaximumScenario.setExpectedStatusCode(
+                    findClientErrorStatusCode(endpoint)
+            );
+
+            scenarios.add(
+                    aboveMaximumScenario
+            );
+        }
+    }
+
+    private TestScenario createStringPayloadScenario(
+            ApiEndpoint endpoint,
+            ApiRequestBodyField field,
+            String name,
+            String description,
+            String type,
+            String value) {
+
+        TestScenario scenario =
+                new TestScenario(
+                        name,
+                        description,
+                        type
+                );
+
+        RequestPayload payload =
+                generateBaselinePayload(
+                        endpoint.getRequestBody()
+                ).copy();
+
+        payload.addField(
+                field.getName(),
+                value
+        );
+
+        scenario.setRequestPayload(
+                payload
+        );
+
+        return scenario;
     }
 }
