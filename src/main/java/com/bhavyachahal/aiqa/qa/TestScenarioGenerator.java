@@ -7,11 +7,13 @@ import com.bhavyachahal.aiqa.specification.model.ApiParameter;
 import com.bhavyachahal.aiqa.specification.model.ApiRequestBody;
 import com.bhavyachahal.aiqa.specification.model.ApiRequestBodyField;
 import com.bhavyachahal.aiqa.specification.model.ApiResponse;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
 public class TestScenarioGenerator {
 
     public List<TestScenario> generate(ApiEndpoint endpoint) {
