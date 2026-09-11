@@ -561,4 +561,144 @@ class TestScenarioGeneratorTest {
                 invalidEmailScenario.getExpectedStatusCode()
         );
     }
+
+    @Test
+    void shouldGenerateSchemaAwareIntegerBoundaryScenarios() {
+
+        ApiEndpoint endpoint =
+                new ApiEndpoint();
+
+        endpoint.setPath("/users");
+        endpoint.setMethod("POST");
+
+        ApiRequestBody requestBody =
+                new ApiRequestBody(
+                        "application/json",
+                        "object",
+                        null
+                );
+
+        ApiRequestBodyField ageField =
+                new ApiRequestBodyField(
+                        "age",
+                        "integer",
+                        true,
+                        "int32"
+                );
+
+        ageField.setMinimum(
+                new java.math.BigDecimal("18")
+        );
+
+        ageField.setMaximum(
+                new java.math.BigDecimal("120")
+        );
+
+        requestBody.setFields(
+                List.of(ageField)
+        );
+
+        endpoint.setRequestBody(
+                requestBody
+        );
+
+        endpoint.setResponses(
+                List.of(
+                        new com.bhavyachahal.aiqa.specification.model.ApiResponse(
+                                "201",
+                                "Created",
+                                "application/json",
+                                null,
+                                null
+                        ),
+                        new com.bhavyachahal.aiqa.specification.model.ApiResponse(
+                                "400",
+                                "Bad request",
+                                "application/json",
+                                null,
+                                null
+                        )
+                )
+        );
+
+        TestScenarioGenerator generator =
+                new TestScenarioGenerator();
+
+        List<TestScenario> scenarios =
+                generator.generate(endpoint);
+
+        TestScenario belowMinimumScenario =
+                scenarios.stream()
+                        .filter(scenario ->
+                                scenario.getName()
+                                        .equals("Below minimum: age"))
+                        .findFirst()
+                        .orElseThrow();
+
+        assertEquals(
+                17,
+                belowMinimumScenario
+                        .getRequestPayload()
+                        .getFields()
+                        .get("age")
+        );
+
+        assertEquals(
+                "400",
+                belowMinimumScenario.getExpectedStatusCode()
+        );
+
+        TestScenario minimumBoundaryScenario =
+                scenarios.stream()
+                        .filter(scenario ->
+                                scenario.getName()
+                                        .equals("Minimum boundary: age"))
+                        .findFirst()
+                        .orElseThrow();
+
+        assertEquals(
+                18,
+                minimumBoundaryScenario
+                        .getRequestPayload()
+                        .getFields()
+                        .get("age")
+        );
+
+        TestScenario maximumBoundaryScenario =
+                scenarios.stream()
+                        .filter(scenario ->
+                                scenario.getName()
+                                        .equals("Maximum boundary: age"))
+                        .findFirst()
+                        .orElseThrow();
+
+        assertEquals(
+                120,
+                maximumBoundaryScenario
+                        .getRequestPayload()
+                        .getFields()
+                        .get("age")
+        );
+
+        TestScenario aboveMaximumScenario =
+                scenarios.stream()
+                        .filter(scenario ->
+                                scenario.getName()
+                                        .equals("Above maximum: age"))
+                        .findFirst()
+                        .orElseThrow();
+
+        assertEquals(
+                121,
+                aboveMaximumScenario
+                        .getRequestPayload()
+                        .getFields()
+                        .get("age")
+        );
+
+        assertEquals(
+                "400",
+                aboveMaximumScenario.getExpectedStatusCode()
+        );
+    }
 }

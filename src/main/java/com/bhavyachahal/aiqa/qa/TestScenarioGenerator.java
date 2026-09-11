@@ -8,6 +8,7 @@ import com.bhavyachahal.aiqa.specification.model.ApiRequestBody;
 import com.bhavyachahal.aiqa.specification.model.ApiRequestBodyField;
 import com.bhavyachahal.aiqa.specification.model.ApiResponse;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +18,10 @@ public class TestScenarioGenerator {
 
         List<TestScenario> scenarios = new ArrayList<>();
 
-        generateParameterScenarios(endpoint, scenarios);
+        generateParameterScenarios(
+                endpoint,
+                scenarios
+        );
 
         TestScenario validRequestScenario =
                 new TestScenario(
@@ -29,7 +33,9 @@ public class TestScenarioGenerator {
         if (hasRequestBody(endpoint)) {
 
             validRequestScenario.setRequestPayload(
-                    generateBaselinePayload(endpoint.getRequestBody())
+                    generateBaselinePayload(
+                            endpoint.getRequestBody()
+                    )
             );
         }
 
@@ -68,7 +74,9 @@ public class TestScenarioGenerator {
                     findSuccessStatusCode(endpoint)
             );
 
-            scenarios.add(expectedResponseScenario);
+            scenarios.add(
+                    expectedResponseScenario
+            );
         }
 
         return scenarios;
@@ -128,29 +136,18 @@ public class TestScenarioGenerator {
 
                     scenarios.add(invalidScenario);
 
-                    if ("integer".equalsIgnoreCase(parameter.getType())) {
+                    if ("integer".equalsIgnoreCase(
+                            parameter.getType())) {
 
-                        TestScenario boundaryScenario =
-                                new TestScenario(
-                                        "Boundary value: "
-                                                + parameter.getName(),
-                                        "Verify the endpoint handles boundary integer values for the "
-                                                + parameter.getLocation()
-                                                + " parameter '"
-                                                + parameter.getName()
-                                                + "'",
-                                        "BOUNDARY"
-                                );
-
-                        boundaryScenario.addParameterValue(
-                                parameter.getName(),
-                                Integer.MAX_VALUE
+                        generateIntegerParameterBoundaryScenarios(
+                                endpoint,
+                                parameter,
+                                scenarios
                         );
-
-                        scenarios.add(boundaryScenario);
                     }
 
-                    if ("string".equalsIgnoreCase(parameter.getType())) {
+                    if ("string".equalsIgnoreCase(
+                            parameter.getType())) {
 
                         TestScenario emptyScenario =
                                 new TestScenario(
@@ -174,6 +171,135 @@ public class TestScenarioGenerator {
                 });
     }
 
+    private void generateIntegerParameterBoundaryScenarios(
+            ApiEndpoint endpoint,
+            ApiParameter parameter,
+            List<TestScenario> scenarios) {
+
+        if (parameter.getMinimum() == null
+                && parameter.getMaximum() == null) {
+
+            TestScenario boundaryScenario =
+                    new TestScenario(
+                            "Boundary value: "
+                                    + parameter.getName(),
+                            "Verify the endpoint handles boundary integer values for the "
+                                    + parameter.getLocation()
+                                    + " parameter '"
+                                    + parameter.getName()
+                                    + "'",
+                            "BOUNDARY"
+                    );
+
+            boundaryScenario.addParameterValue(
+                    parameter.getName(),
+                    Integer.MAX_VALUE
+            );
+
+            scenarios.add(boundaryScenario);
+
+            return;
+        }
+
+        if (parameter.getMinimum() != null) {
+
+            int minimum =
+                    parameter.getMinimum()
+                            .intValue();
+
+            TestScenario belowMinimumScenario =
+                    new TestScenario(
+                            "Below minimum: "
+                                    + parameter.getName(),
+                            "Verify the endpoint rejects a value below the minimum for parameter '"
+                                    + parameter.getName()
+                                    + "'",
+                            "VALIDATION"
+                    );
+
+            belowMinimumScenario.addParameterValue(
+                    parameter.getName(),
+                    minimum - 1
+            );
+
+            belowMinimumScenario.setExpectedStatusCode(
+                    findClientErrorStatusCode(endpoint)
+            );
+
+            scenarios.add(belowMinimumScenario);
+
+            TestScenario minimumBoundaryScenario =
+                    new TestScenario(
+                            "Minimum boundary: "
+                                    + parameter.getName(),
+                            "Verify the endpoint accepts the minimum allowed value for parameter '"
+                                    + parameter.getName()
+                                    + "'",
+                            "BOUNDARY"
+                    );
+
+            minimumBoundaryScenario.addParameterValue(
+                    parameter.getName(),
+                    minimum
+            );
+
+            minimumBoundaryScenario.setExpectedStatusCode(
+                    findSuccessStatusCode(endpoint)
+            );
+
+            scenarios.add(minimumBoundaryScenario);
+        }
+
+        if (parameter.getMaximum() != null) {
+
+            int maximum =
+                    parameter.getMaximum()
+                            .intValue();
+
+            TestScenario maximumBoundaryScenario =
+                    new TestScenario(
+                            "Maximum boundary: "
+                                    + parameter.getName(),
+                            "Verify the endpoint accepts the maximum allowed value for parameter '"
+                                    + parameter.getName()
+                                    + "'",
+                            "BOUNDARY"
+                    );
+
+            maximumBoundaryScenario.addParameterValue(
+                    parameter.getName(),
+                    maximum
+            );
+
+            maximumBoundaryScenario.setExpectedStatusCode(
+                    findSuccessStatusCode(endpoint)
+            );
+
+            scenarios.add(maximumBoundaryScenario);
+
+            TestScenario aboveMaximumScenario =
+                    new TestScenario(
+                            "Above maximum: "
+                                    + parameter.getName(),
+                            "Verify the endpoint rejects a value above the maximum for parameter '"
+                                    + parameter.getName()
+                                    + "'",
+                            "VALIDATION"
+                    );
+
+            aboveMaximumScenario.addParameterValue(
+                    parameter.getName(),
+                    maximum + 1
+            );
+
+            aboveMaximumScenario.setExpectedStatusCode(
+                    findClientErrorStatusCode(endpoint)
+            );
+
+            scenarios.add(aboveMaximumScenario);
+        }
+    }
+
     private void addBaselineParameterValues(
             ApiEndpoint endpoint,
             TestScenario scenario) {
@@ -188,7 +314,9 @@ public class TestScenarioGenerator {
                 .forEach(parameter ->
                         scenario.addParameterValue(
                                 parameter.getName(),
-                                generateBaselineParameterValue(parameter)
+                                generateBaselineParameterValue(
+                                        parameter
+                                )
                         )
                 );
     }
@@ -196,15 +324,31 @@ public class TestScenarioGenerator {
     private Object generateBaselineParameterValue(
             ApiParameter parameter) {
 
-        if ("integer".equalsIgnoreCase(parameter.getType())) {
+        if ("integer".equalsIgnoreCase(
+                parameter.getType())) {
+
+            if (parameter.getMinimum() != null) {
+                return parameter.getMinimum()
+                        .intValue();
+            }
+
             return 1;
         }
 
-        if ("number".equalsIgnoreCase(parameter.getType())) {
+        if ("number".equalsIgnoreCase(
+                parameter.getType())) {
+
+            if (parameter.getMinimum() != null) {
+                return parameter.getMinimum()
+                        .doubleValue();
+            }
+
             return 1.0;
         }
 
-        if ("boolean".equalsIgnoreCase(parameter.getType())) {
+        if ("boolean".equalsIgnoreCase(
+                parameter.getType())) {
+
             return true;
         }
 
@@ -214,15 +358,21 @@ public class TestScenarioGenerator {
     private Object generateInvalidParameterValue(
             ApiParameter parameter) {
 
-        if ("integer".equalsIgnoreCase(parameter.getType())) {
+        if ("integer".equalsIgnoreCase(
+                parameter.getType())) {
+
             return "not-an-integer";
         }
 
-        if ("number".equalsIgnoreCase(parameter.getType())) {
+        if ("number".equalsIgnoreCase(
+                parameter.getType())) {
+
             return "not-a-number";
         }
 
-        if ("boolean".equalsIgnoreCase(parameter.getType())) {
+        if ("boolean".equalsIgnoreCase(
+                parameter.getType())) {
+
             return "not-a-boolean";
         }
 
@@ -259,11 +409,12 @@ public class TestScenarioGenerator {
                                     endpoint.getRequestBody()
                             ).copy();
 
-                    payload.getFields().remove(
-                            field.getName()
-                    );
+                    payload.getFields()
+                            .remove(field.getName());
 
-                    scenario.setRequestPayload(payload);
+                    scenario.setRequestPayload(
+                            payload
+                    );
 
                     scenario.setExpectedStatusCode(
                             findClientErrorStatusCode(endpoint)
@@ -285,7 +436,8 @@ public class TestScenarioGenerator {
                 .getFields()
                 .forEach(field -> {
 
-                    if ("email".equalsIgnoreCase(field.getFormat())) {
+                    if ("email".equalsIgnoreCase(
+                            field.getFormat())) {
 
                         TestScenario scenario =
                                 new TestScenario(
@@ -308,7 +460,9 @@ public class TestScenarioGenerator {
                                 "invalid-email"
                         );
 
-                        scenario.setRequestPayload(payload);
+                        scenario.setRequestPayload(
+                                payload
+                        );
 
                         scenario.setExpectedStatusCode(
                                 findClientErrorStatusCode(endpoint)
@@ -317,7 +471,8 @@ public class TestScenarioGenerator {
                         scenarios.add(scenario);
                     }
 
-                    if ("integer".equalsIgnoreCase(field.getType())) {
+                    if ("integer".equalsIgnoreCase(
+                            field.getType())) {
 
                         addIntegerScenarios(
                                 endpoint,
@@ -326,8 +481,10 @@ public class TestScenarioGenerator {
                         );
                     }
 
-                    if ("string".equalsIgnoreCase(field.getType())
-                            && !"email".equalsIgnoreCase(field.getFormat())) {
+                    if ("string".equalsIgnoreCase(
+                            field.getType())
+                            && !"email".equalsIgnoreCase(
+                            field.getFormat())) {
 
                         TestScenario scenario =
                                 new TestScenario(
@@ -350,7 +507,9 @@ public class TestScenarioGenerator {
                                 ""
                         );
 
-                        scenario.setRequestPayload(payload);
+                        scenario.setRequestPayload(
+                                payload
+                        );
 
                         scenario.setExpectedStatusCode(
                                 findClientErrorStatusCode(endpoint)
@@ -397,93 +556,224 @@ public class TestScenarioGenerator {
 
         scenarios.add(invalidScenario);
 
-        TestScenario negativeScenario =
+        if (field.getMinimum() != null
+                || field.getMaximum() != null) {
+
+            addSchemaAwareIntegerScenarios(
+                    endpoint,
+                    field,
+                    scenarios
+            );
+
+            return;
+        }
+
+        addGenericIntegerScenarios(
+                endpoint,
+                field,
+                scenarios
+        );
+    }
+
+    private void addSchemaAwareIntegerScenarios(
+            ApiEndpoint endpoint,
+            ApiRequestBodyField field,
+            List<TestScenario> scenarios) {
+
+        if (field.getMinimum() != null) {
+
+            int minimum =
+                    field.getMinimum()
+                            .intValue();
+
+            TestScenario belowMinimumScenario =
+                    createIntegerPayloadScenario(
+                            endpoint,
+                            field,
+                            "Below minimum: "
+                                    + field.getName(),
+                            "Verify the endpoint rejects a value below the minimum for request body field '"
+                                    + field.getName()
+                                    + "'",
+                            "VALIDATION",
+                            minimum - 1
+                    );
+
+            belowMinimumScenario.setExpectedStatusCode(
+                    findClientErrorStatusCode(endpoint)
+            );
+
+            scenarios.add(
+                    belowMinimumScenario
+            );
+
+            TestScenario minimumBoundaryScenario =
+                    createIntegerPayloadScenario(
+                            endpoint,
+                            field,
+                            "Minimum boundary: "
+                                    + field.getName(),
+                            "Verify the endpoint accepts the minimum allowed value for request body field '"
+                                    + field.getName()
+                                    + "'",
+                            "BOUNDARY",
+                            minimum
+                    );
+
+            minimumBoundaryScenario.setExpectedStatusCode(
+                    findSuccessStatusCode(endpoint)
+            );
+
+            scenarios.add(
+                    minimumBoundaryScenario
+            );
+        }
+
+        if (field.getMaximum() != null) {
+
+            int maximum =
+                    field.getMaximum()
+                            .intValue();
+
+            TestScenario maximumBoundaryScenario =
+                    createIntegerPayloadScenario(
+                            endpoint,
+                            field,
+                            "Maximum boundary: "
+                                    + field.getName(),
+                            "Verify the endpoint accepts the maximum allowed value for request body field '"
+                                    + field.getName()
+                                    + "'",
+                            "BOUNDARY",
+                            maximum
+                    );
+
+            maximumBoundaryScenario.setExpectedStatusCode(
+                    findSuccessStatusCode(endpoint)
+            );
+
+            scenarios.add(
+                    maximumBoundaryScenario
+            );
+
+            TestScenario aboveMaximumScenario =
+                    createIntegerPayloadScenario(
+                            endpoint,
+                            field,
+                            "Above maximum: "
+                                    + field.getName(),
+                            "Verify the endpoint rejects a value above the maximum for request body field '"
+                                    + field.getName()
+                                    + "'",
+                            "VALIDATION",
+                            maximum + 1
+                    );
+
+            aboveMaximumScenario.setExpectedStatusCode(
+                    findClientErrorStatusCode(endpoint)
+            );
+
+            scenarios.add(
+                    aboveMaximumScenario
+            );
+        }
+    }
+
+    private TestScenario createIntegerPayloadScenario(
+            ApiEndpoint endpoint,
+            ApiRequestBodyField field,
+            String name,
+            String description,
+            String type,
+            int value) {
+
+        TestScenario scenario =
                 new TestScenario(
+                        name,
+                        description,
+                        type
+                );
+
+        RequestPayload payload =
+                generateBaselinePayload(
+                        endpoint.getRequestBody()
+                ).copy();
+
+        payload.addField(
+                field.getName(),
+                value
+        );
+
+        scenario.setRequestPayload(
+                payload
+        );
+
+        return scenario;
+    }
+
+    private void addGenericIntegerScenarios(
+            ApiEndpoint endpoint,
+            ApiRequestBodyField field,
+            List<TestScenario> scenarios) {
+
+        TestScenario negativeScenario =
+                createIntegerPayloadScenario(
+                        endpoint,
+                        field,
                         "Negative integer: "
                                 + field.getName(),
-                        "Verify the endpoint handles a negative integer "
-                                + "value for request body field '"
+                        "Verify the endpoint handles a negative integer value for request body field '"
                                 + field.getName()
                                 + "'",
-                        "BOUNDARY"
+                        "BOUNDARY",
+                        -1
                 );
 
-        RequestPayload negativePayload =
-                generateBaselinePayload(
-                        endpoint.getRequestBody()
-                ).copy();
-
-        negativePayload.addField(
-                field.getName(),
-                -1
+        scenarios.add(
+                negativeScenario
         );
-
-        negativeScenario.setRequestPayload(
-                negativePayload
-        );
-
-        scenarios.add(negativeScenario);
 
         TestScenario zeroScenario =
-                new TestScenario(
+                createIntegerPayloadScenario(
+                        endpoint,
+                        field,
                         "Zero value: "
                                 + field.getName(),
-                        "Verify the endpoint handles a zero value "
-                                + "for request body field '"
+                        "Verify the endpoint handles a zero value for request body field '"
                                 + field.getName()
                                 + "'",
-                        "BOUNDARY"
+                        "BOUNDARY",
+                        0
                 );
 
-        RequestPayload zeroPayload =
-                generateBaselinePayload(
-                        endpoint.getRequestBody()
-                ).copy();
-
-        zeroPayload.addField(
-                field.getName(),
-                0
+        scenarios.add(
+                zeroScenario
         );
-
-        zeroScenario.setRequestPayload(
-                zeroPayload
-        );
-
-        scenarios.add(zeroScenario);
 
         TestScenario largeScenario =
-                new TestScenario(
+                createIntegerPayloadScenario(
+                        endpoint,
+                        field,
                         "Large integer: "
                                 + field.getName(),
-                        "Verify the endpoint handles a large integer "
-                                + "value for request body field '"
+                        "Verify the endpoint handles a large integer value for request body field '"
                                 + field.getName()
                                 + "'",
-                        "BOUNDARY"
+                        "BOUNDARY",
+                        Integer.MAX_VALUE
                 );
 
-        RequestPayload largePayload =
-                generateBaselinePayload(
-                        endpoint.getRequestBody()
-                ).copy();
-
-        largePayload.addField(
-                field.getName(),
-                Integer.MAX_VALUE
+        scenarios.add(
+                largeScenario
         );
-
-        largeScenario.setRequestPayload(
-                largePayload
-        );
-
-        scenarios.add(largeScenario);
     }
 
     private boolean hasRequestBody(
             ApiEndpoint endpoint) {
 
         return endpoint.getRequestBody() != null
-                && endpoint.getRequestBody().getFields() != null;
+                && endpoint.getRequestBody()
+                .getFields() != null;
     }
 
     private RequestPayload generateBaselinePayload(
@@ -496,23 +786,9 @@ public class TestScenarioGenerator {
                 requestBody.getFields()) {
 
             Object value =
-                    switch (field.getType().toLowerCase()) {
-
-                        case "string" ->
-                                "sample-" + field.getName();
-
-                        case "integer" ->
-                                1;
-
-                        case "number" ->
-                                1.0;
-
-                        case "boolean" ->
-                                true;
-
-                        default ->
-                                null;
-                    };
+                    generateBaselineFieldValue(
+                            field
+                    );
 
             payload.addField(
                     field.getName(),
@@ -523,11 +799,86 @@ public class TestScenarioGenerator {
         return payload;
     }
 
+    private Object generateBaselineFieldValue(
+            ApiRequestBodyField field) {
+
+        if (field.getType() == null) {
+            return null;
+        }
+
+        return switch (
+                field.getType()
+                        .toLowerCase()) {
+
+            case "string" ->
+                    generateBaselineStringValue(
+                            field
+                    );
+
+            case "integer" -> {
+
+                if (field.getMinimum() != null) {
+
+                    yield field.getMinimum()
+                            .intValue();
+                }
+
+                yield 1;
+            }
+
+            case "number" -> {
+
+                if (field.getMinimum() != null) {
+
+                    yield field.getMinimum()
+                            .doubleValue();
+                }
+
+                yield 1.0;
+            }
+
+            case "boolean" ->
+                    true;
+
+            default ->
+                    null;
+        };
+    }
+
+    private String generateBaselineStringValue(
+            ApiRequestBodyField field) {
+
+        String value =
+                "sample-" + field.getName();
+
+        if (field.getMinLength() != null
+                && value.length()
+                < field.getMinLength()) {
+
+            return "a".repeat(
+                    field.getMinLength()
+            );
+        }
+
+        if (field.getMaxLength() != null
+                && value.length()
+                > field.getMaxLength()) {
+
+            return value.substring(
+                    0,
+                    field.getMaxLength()
+            );
+        }
+
+        return value;
+    }
+
     private String findSuccessStatusCode(
             ApiEndpoint endpoint) {
 
         if (endpoint.getResponses() == null
-                || endpoint.getResponses().isEmpty()) {
+                || endpoint.getResponses()
+                .isEmpty()) {
 
             return null;
         }
@@ -537,7 +888,9 @@ public class TestScenarioGenerator {
                 .map(ApiResponse::getStatusCode)
                 .filter(statusCode ->
                         statusCode != null
-                                && statusCode.matches("2\\d{2}")
+                                && statusCode.matches(
+                                "2\\d{2}"
+                        )
                 )
                 .findFirst()
                 .orElse(null);
@@ -547,7 +900,8 @@ public class TestScenarioGenerator {
             ApiEndpoint endpoint) {
 
         if (endpoint.getResponses() == null
-                || endpoint.getResponses().isEmpty()) {
+                || endpoint.getResponses()
+                .isEmpty()) {
 
             return null;
         }
@@ -557,7 +911,9 @@ public class TestScenarioGenerator {
                 .map(ApiResponse::getStatusCode)
                 .filter(statusCode ->
                         statusCode != null
-                                && statusCode.matches("4\\d{2}")
+                                && statusCode.matches(
+                                "4\\d{2}"
+                        )
                 )
                 .findFirst()
                 .orElse(null);
