@@ -6,6 +6,7 @@ import com.bhavyachahal.aiqa.specification.model.ApiEndpoint;
 import com.bhavyachahal.aiqa.specification.model.ApiParameter;
 import com.bhavyachahal.aiqa.specification.model.ApiRequestBody;
 import com.bhavyachahal.aiqa.specification.model.ApiRequestBodyField;
+import com.bhavyachahal.aiqa.specification.model.ApiResponse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +38,13 @@ public class TestScenarioGenerator {
                 validRequestScenario
         );
 
+        String successStatusCode =
+                findSuccessStatusCode(endpoint);
+
+        validRequestScenario.setExpectedStatusCode(
+                successStatusCode
+        );
+
         scenarios.add(validRequestScenario);
 
         generateMissingRequiredFieldScenarios(
@@ -52,12 +60,19 @@ public class TestScenarioGenerator {
         if (endpoint.getResponses() != null
                 && !endpoint.getResponses().isEmpty()) {
 
-            scenarios.add(
+            TestScenario expectedResponseScenario =
                     new TestScenario(
                             "Expected response",
                             "Verify the endpoint returns an expected response",
                             "POSITIVE"
-                    )
+                    );
+
+            expectedResponseScenario.setExpectedStatusCode(
+                    successStatusCode
+            );
+
+            scenarios.add(
+                    expectedResponseScenario
             );
         }
 
@@ -241,11 +256,17 @@ public class TestScenarioGenerator {
                                     endpoint.getRequestBody()
                             ).copy();
 
-                    payload.getFields().remove(field.getName());
+                    payload.getFields().remove(
+                            field.getName()
+                    );
 
-                    scenario.setRequestPayload(payload);
+                    scenario.setRequestPayload(
+                            payload
+                    );
 
-                    scenarios.add(scenario);
+                    scenarios.add(
+                            scenario
+                    );
                 });
     }
 
@@ -261,7 +282,8 @@ public class TestScenarioGenerator {
                 .getFields()
                 .forEach(field -> {
 
-                    if ("email".equalsIgnoreCase(field.getFormat())) {
+                    if ("email".equalsIgnoreCase(
+                            field.getFormat())) {
 
                         TestScenario scenario =
                                 new TestScenario(
@@ -284,12 +306,17 @@ public class TestScenarioGenerator {
                                 "invalid-email"
                         );
 
-                        scenario.setRequestPayload(payload);
+                        scenario.setRequestPayload(
+                                payload
+                        );
 
-                        scenarios.add(scenario);
+                        scenarios.add(
+                                scenario
+                        );
                     }
 
-                    if ("integer".equalsIgnoreCase(field.getType())) {
+                    if ("integer".equalsIgnoreCase(
+                            field.getType())) {
 
                         addIntegerScenarios(
                                 endpoint,
@@ -298,8 +325,10 @@ public class TestScenarioGenerator {
                         );
                     }
 
-                    if ("string".equalsIgnoreCase(field.getType())
-                            && !"email".equalsIgnoreCase(field.getFormat())) {
+                    if ("string".equalsIgnoreCase(
+                            field.getType())
+                            && !"email".equalsIgnoreCase(
+                            field.getFormat())) {
 
                         TestScenario scenario =
                                 new TestScenario(
@@ -322,9 +351,13 @@ public class TestScenarioGenerator {
                                 ""
                         );
 
-                        scenario.setRequestPayload(payload);
+                        scenario.setRequestPayload(
+                                payload
+                        );
 
-                        scenarios.add(scenario);
+                        scenarios.add(
+                                scenario
+                        );
                     }
                 });
     }
@@ -359,7 +392,9 @@ public class TestScenarioGenerator {
                 invalidPayload
         );
 
-        scenarios.add(invalidScenario);
+        scenarios.add(
+                invalidScenario
+        );
 
         TestScenario negativeScenario =
                 new TestScenario(
@@ -386,7 +421,9 @@ public class TestScenarioGenerator {
                 negativePayload
         );
 
-        scenarios.add(negativeScenario);
+        scenarios.add(
+                negativeScenario
+        );
 
         TestScenario zeroScenario =
                 new TestScenario(
@@ -413,7 +450,9 @@ public class TestScenarioGenerator {
                 zeroPayload
         );
 
-        scenarios.add(zeroScenario);
+        scenarios.add(
+                zeroScenario
+        );
 
         TestScenario largeScenario =
                 new TestScenario(
@@ -440,10 +479,13 @@ public class TestScenarioGenerator {
                 largePayload
         );
 
-        scenarios.add(largeScenario);
+        scenarios.add(
+                largeScenario
+        );
     }
 
-    private boolean hasRequestBody(ApiEndpoint endpoint) {
+    private boolean hasRequestBody(
+            ApiEndpoint endpoint) {
 
         return endpoint.getRequestBody() != null
                 && endpoint.getRequestBody().getFields() != null;
@@ -460,14 +502,19 @@ public class TestScenarioGenerator {
 
             Object value =
                     switch (field.getType().toLowerCase()) {
+
                         case "string" ->
                                 "sample-" + field.getName();
+
                         case "integer" ->
                                 1;
+
                         case "number" ->
                                 1.0;
+
                         case "boolean" ->
                                 true;
+
                         default ->
                                 null;
                     };
@@ -479,5 +526,25 @@ public class TestScenarioGenerator {
         }
 
         return payload;
+    }
+
+    private String findSuccessStatusCode(
+            ApiEndpoint endpoint) {
+
+        if (endpoint.getResponses() == null
+                || endpoint.getResponses().isEmpty()) {
+
+            return null;
+        }
+
+        return endpoint.getResponses()
+                .stream()
+                .map(ApiResponse::getStatusCode)
+                .filter(statusCode ->
+                        statusCode != null
+                                && statusCode.matches("2\\d{2}")
+                )
+                .findFirst()
+                .orElse(null);
     }
 }

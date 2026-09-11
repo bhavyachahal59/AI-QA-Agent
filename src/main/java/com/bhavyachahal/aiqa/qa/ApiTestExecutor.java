@@ -86,7 +86,9 @@ public class ApiTestExecutor {
                     );
 
             String expectedStatusCode =
-                    expectedResponse != null
+                    scenario.getExpectedStatusCode() != null
+                            ? scenario.getExpectedStatusCode()
+                            : expectedResponse != null
                             ? expectedResponse.getStatusCode()
                             : null;
 
@@ -160,7 +162,20 @@ public class ApiTestExecutor {
 
         if (endpoint.getResponses() == null
                 || endpoint.getResponses().isEmpty()) {
+
             return null;
+        }
+
+        if (scenario.getExpectedStatusCode() != null) {
+
+            return endpoint.getResponses()
+                    .stream()
+                    .filter(response ->
+                            scenario.getExpectedStatusCode()
+                                    .equals(response.getStatusCode())
+                    )
+                    .findFirst()
+                    .orElse(null);
         }
 
         return endpoint.getResponses()

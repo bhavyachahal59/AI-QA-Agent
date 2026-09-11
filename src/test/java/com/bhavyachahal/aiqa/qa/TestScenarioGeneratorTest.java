@@ -419,4 +419,65 @@ class TestScenarioGeneratorTest {
                         .get("name")
         );
     }
+
+    @Test
+    void shouldAssignSuccessStatusCodeToPositiveScenarios() {
+
+        ApiEndpoint endpoint =
+                new ApiEndpoint();
+
+        endpoint.setPath("/users");
+        endpoint.setMethod("GET");
+
+        endpoint.setResponses(
+                List.of(
+                        new com.bhavyachahal.aiqa.specification.model.ApiResponse(
+                                "400",
+                                "Bad request",
+                                "application/json",
+                                null,
+                                null
+                        ),
+                        new com.bhavyachahal.aiqa.specification.model.ApiResponse(
+                                "201",
+                                "Created",
+                                "application/json",
+                                null,
+                                null
+                        )
+                )
+        );
+
+        TestScenarioGenerator generator =
+                new TestScenarioGenerator();
+
+        List<TestScenario> scenarios =
+                generator.generate(endpoint);
+
+        TestScenario validRequestScenario =
+                scenarios.stream()
+                        .filter(scenario ->
+                                scenario.getName()
+                                        .equals("Valid request"))
+                        .findFirst()
+                        .orElseThrow();
+
+        assertEquals(
+                "201",
+                validRequestScenario.getExpectedStatusCode()
+        );
+
+        TestScenario expectedResponseScenario =
+                scenarios.stream()
+                        .filter(scenario ->
+                                scenario.getName()
+                                        .equals("Expected response"))
+                        .findFirst()
+                        .orElseThrow();
+
+        assertEquals(
+                "201",
+                expectedResponseScenario.getExpectedStatusCode()
+        );
+    }
 }
