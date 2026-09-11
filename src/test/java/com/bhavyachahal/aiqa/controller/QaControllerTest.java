@@ -2,6 +2,9 @@ package com.bhavyachahal.aiqa.controller;
 
 import com.bhavyachahal.aiqa.qa.TestScenarioGenerator;
 import com.bhavyachahal.aiqa.qa.model.TestScenario;
+import com.bhavyachahal.aiqa.specification.model.ApiEndpoint;
+import com.bhavyachahal.aiqa.specification.model.ApiSpecification;
+import com.bhavyachahal.aiqa.specification.parser.OpenApiSpecificationParser;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,9 +13,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -28,6 +34,9 @@ class QaControllerTest {
 
     @MockitoBean
     private TestScenarioGenerator scenarioGenerator;
+
+    @MockitoBean
+    private OpenApiSpecificationParser specificationParser;
 
     @Test
     void shouldReturnHealthStatus() throws Exception {
@@ -80,6 +89,113 @@ class QaControllerTest {
 
         mockMvc.perform(
                         post("/api/qa/scenarios")
+                                .contentType(
+                                        MediaType.APPLICATION_JSON
+                                )
+                                .content(
+                                        requestBody
+                                )
+                )
+                .andExpect(
+                        status().isOk()
+                )
+                .andExpect(
+                        jsonPath("$[0].name")
+                                .value(
+                                        "Valid request"
+                                )
+                )
+                .andExpect(
+                        jsonPath("$[0].type")
+                                .value(
+                                        "POSITIVE"
+                                )
+                )
+                .andExpect(
+                        jsonPath("$[0].expectedStatusCode")
+                                .value(
+                                        "200"
+                                )
+                );
+    }
+
+    @Test
+    void shouldGenerateScenariosFromOpenApi() throws Exception {
+
+        UUID specificationId =
+                UUID.randomUUID();
+
+        ApiSpecification specification =
+                new ApiSpecification(
+                        specificationId,
+                        "User API",
+                        "1.0.0",
+                        "openapi-content",
+                        "yaml",
+                        Instant.now()
+                );
+
+        ApiEndpoint endpoint =
+                new ApiEndpoint();
+
+        endpoint.setPath(
+                "/users"
+        );
+
+        endpoint.setMethod(
+                "GET"
+        );
+
+        TestScenario scenario =
+                new TestScenario();
+
+        scenario.setName(
+                "Valid request"
+        );
+
+        scenario.setType(
+                "POSITIVE"
+        );
+
+        scenario.setExpectedStatusCode(
+                "200"
+        );
+
+        when(
+                specificationParser.parse(
+                        anyString(),
+                        anyString()
+                )
+        ).thenReturn(
+                specification
+        );
+
+        when(
+                specificationParser.parseEndpoints(
+                        anyString(),
+                        any(UUID.class)
+                )
+        ).thenReturn(
+                List.of(endpoint)
+        );
+
+        when(
+                scenarioGenerator.generate(
+                        any(ApiEndpoint.class)
+                )
+        ).thenReturn(
+                List.of(scenario)
+        );
+
+        String requestBody = """
+                {
+                  "content": "openapi: 3.0.0",
+                  "format": "yaml"
+                }
+                """;
+
+        mockMvc.perform(
+                        post("/api/qa/openapi/scenarios")
                                 .contentType(
                                         MediaType.APPLICATION_JSON
                                 )
