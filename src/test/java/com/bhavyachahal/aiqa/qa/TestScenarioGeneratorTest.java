@@ -480,4 +480,85 @@ class TestScenarioGeneratorTest {
                 expectedResponseScenario.getExpectedStatusCode()
         );
     }
+
+    @Test
+    void shouldAssignClientErrorStatusCodeToValidationScenarios() {
+
+        ApiEndpoint endpoint =
+                new ApiEndpoint();
+
+        endpoint.setPath("/users");
+        endpoint.setMethod("POST");
+
+        ApiRequestBody requestBody =
+                new ApiRequestBody(
+                        "application/json",
+                        "object",
+                        null
+                );
+
+        requestBody.setFields(
+                List.of(
+                        new ApiRequestBodyField(
+                                "email",
+                                "string",
+                                true,
+                                "email"
+                        )
+                )
+        );
+
+        endpoint.setRequestBody(requestBody);
+
+        endpoint.setResponses(
+                List.of(
+                        new com.bhavyachahal.aiqa.specification.model.ApiResponse(
+                                "201",
+                                "Created",
+                                "application/json",
+                                null,
+                                null
+                        ),
+                        new com.bhavyachahal.aiqa.specification.model.ApiResponse(
+                                "400",
+                                "Bad request",
+                                "application/json",
+                                null,
+                                null
+                        )
+                )
+        );
+
+        TestScenarioGenerator generator =
+                new TestScenarioGenerator();
+
+        List<TestScenario> scenarios =
+                generator.generate(endpoint);
+
+        TestScenario missingEmailScenario =
+                scenarios.stream()
+                        .filter(scenario ->
+                                scenario.getName()
+                                        .equals("Missing required field: email"))
+                        .findFirst()
+                        .orElseThrow();
+
+        assertEquals(
+                "400",
+                missingEmailScenario.getExpectedStatusCode()
+        );
+
+        TestScenario invalidEmailScenario =
+                scenarios.stream()
+                        .filter(scenario ->
+                                scenario.getName()
+                                        .equals("Invalid email: email"))
+                        .findFirst()
+                        .orElseThrow();
+
+        assertEquals(
+                "400",
+                invalidEmailScenario.getExpectedStatusCode()
+        );
+    }
 }

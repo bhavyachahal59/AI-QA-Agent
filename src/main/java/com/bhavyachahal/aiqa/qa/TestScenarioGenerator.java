@@ -38,11 +38,8 @@ public class TestScenarioGenerator {
                 validRequestScenario
         );
 
-        String successStatusCode =
-                findSuccessStatusCode(endpoint);
-
         validRequestScenario.setExpectedStatusCode(
-                successStatusCode
+                findSuccessStatusCode(endpoint)
         );
 
         scenarios.add(validRequestScenario);
@@ -68,12 +65,10 @@ public class TestScenarioGenerator {
                     );
 
             expectedResponseScenario.setExpectedStatusCode(
-                    successStatusCode
+                    findSuccessStatusCode(endpoint)
             );
 
-            scenarios.add(
-                    expectedResponseScenario
-            );
+            scenarios.add(expectedResponseScenario);
         }
 
         return scenarios;
@@ -104,6 +99,10 @@ public class TestScenarioGenerator {
                                     "VALIDATION"
                             );
 
+                    missingScenario.setExpectedStatusCode(
+                            findClientErrorStatusCode(endpoint)
+                    );
+
                     scenarios.add(missingScenario);
 
                     TestScenario invalidScenario =
@@ -121,6 +120,10 @@ public class TestScenarioGenerator {
                     invalidScenario.addParameterValue(
                             parameter.getName(),
                             generateInvalidParameterValue(parameter)
+                    );
+
+                    invalidScenario.setExpectedStatusCode(
+                            findClientErrorStatusCode(endpoint)
                     );
 
                     scenarios.add(invalidScenario);
@@ -260,13 +263,13 @@ public class TestScenarioGenerator {
                             field.getName()
                     );
 
-                    scenario.setRequestPayload(
-                            payload
+                    scenario.setRequestPayload(payload);
+
+                    scenario.setExpectedStatusCode(
+                            findClientErrorStatusCode(endpoint)
                     );
 
-                    scenarios.add(
-                            scenario
-                    );
+                    scenarios.add(scenario);
                 });
     }
 
@@ -282,8 +285,7 @@ public class TestScenarioGenerator {
                 .getFields()
                 .forEach(field -> {
 
-                    if ("email".equalsIgnoreCase(
-                            field.getFormat())) {
+                    if ("email".equalsIgnoreCase(field.getFormat())) {
 
                         TestScenario scenario =
                                 new TestScenario(
@@ -306,17 +308,16 @@ public class TestScenarioGenerator {
                                 "invalid-email"
                         );
 
-                        scenario.setRequestPayload(
-                                payload
+                        scenario.setRequestPayload(payload);
+
+                        scenario.setExpectedStatusCode(
+                                findClientErrorStatusCode(endpoint)
                         );
 
-                        scenarios.add(
-                                scenario
-                        );
+                        scenarios.add(scenario);
                     }
 
-                    if ("integer".equalsIgnoreCase(
-                            field.getType())) {
+                    if ("integer".equalsIgnoreCase(field.getType())) {
 
                         addIntegerScenarios(
                                 endpoint,
@@ -325,10 +326,8 @@ public class TestScenarioGenerator {
                         );
                     }
 
-                    if ("string".equalsIgnoreCase(
-                            field.getType())
-                            && !"email".equalsIgnoreCase(
-                            field.getFormat())) {
+                    if ("string".equalsIgnoreCase(field.getType())
+                            && !"email".equalsIgnoreCase(field.getFormat())) {
 
                         TestScenario scenario =
                                 new TestScenario(
@@ -351,13 +350,13 @@ public class TestScenarioGenerator {
                                 ""
                         );
 
-                        scenario.setRequestPayload(
-                                payload
+                        scenario.setRequestPayload(payload);
+
+                        scenario.setExpectedStatusCode(
+                                findClientErrorStatusCode(endpoint)
                         );
 
-                        scenarios.add(
-                                scenario
-                        );
+                        scenarios.add(scenario);
                     }
                 });
     }
@@ -392,9 +391,11 @@ public class TestScenarioGenerator {
                 invalidPayload
         );
 
-        scenarios.add(
-                invalidScenario
+        invalidScenario.setExpectedStatusCode(
+                findClientErrorStatusCode(endpoint)
         );
+
+        scenarios.add(invalidScenario);
 
         TestScenario negativeScenario =
                 new TestScenario(
@@ -421,9 +422,7 @@ public class TestScenarioGenerator {
                 negativePayload
         );
 
-        scenarios.add(
-                negativeScenario
-        );
+        scenarios.add(negativeScenario);
 
         TestScenario zeroScenario =
                 new TestScenario(
@@ -450,9 +449,7 @@ public class TestScenarioGenerator {
                 zeroPayload
         );
 
-        scenarios.add(
-                zeroScenario
-        );
+        scenarios.add(zeroScenario);
 
         TestScenario largeScenario =
                 new TestScenario(
@@ -479,9 +476,7 @@ public class TestScenarioGenerator {
                 largePayload
         );
 
-        scenarios.add(
-                largeScenario
-        );
+        scenarios.add(largeScenario);
     }
 
     private boolean hasRequestBody(
@@ -543,6 +538,26 @@ public class TestScenarioGenerator {
                 .filter(statusCode ->
                         statusCode != null
                                 && statusCode.matches("2\\d{2}")
+                )
+                .findFirst()
+                .orElse(null);
+    }
+
+    private String findClientErrorStatusCode(
+            ApiEndpoint endpoint) {
+
+        if (endpoint.getResponses() == null
+                || endpoint.getResponses().isEmpty()) {
+
+            return null;
+        }
+
+        return endpoint.getResponses()
+                .stream()
+                .map(ApiResponse::getStatusCode)
+                .filter(statusCode ->
+                        statusCode != null
+                                && statusCode.matches("4\\d{2}")
                 )
                 .findFirst()
                 .orElse(null);
