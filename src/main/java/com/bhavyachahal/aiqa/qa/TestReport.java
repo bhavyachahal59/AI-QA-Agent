@@ -33,4 +33,66 @@ public class TestReport {
                 .filter(result -> !result.isSuccessful())
                 .count();
     }
+
+    public double getPassRate() {
+
+        if (results.isEmpty()) {
+            return 0.0;
+        }
+
+        return ((double) getPassedTests()
+                / getTotalTests()) * 100;
+    }
+
+    public String toSummary() {
+
+        StringBuilder builder =
+                new StringBuilder();
+
+        builder.append("API Test Report\n");
+        builder.append("---------------\n");
+
+        builder.append("Total: ")
+                .append(getTotalTests())
+                .append("\n");
+
+        builder.append("Passed: ")
+                .append(getPassedTests())
+                .append("\n");
+
+        builder.append("Failed: ")
+                .append(getFailedTests())
+                .append("\n");
+
+        builder.append("Pass rate: ")
+                .append(String.format("%.1f", getPassRate()))
+                .append("%\n");
+
+        builder.append("\n");
+
+        for (TestExecutionResult result : results) {
+
+            builder.append(
+                    result.isSuccessful()
+                            ? "PASS"
+                            : "FAIL"
+            );
+
+            builder.append(" | ")
+                    .append(result.getScenarioName())
+                    .append("\n");
+
+            builder.append("Expected: ")
+                    .append(result.getExpectedStatusCode())
+                    .append("\n");
+
+            builder.append("Actual: ")
+                    .append(result.getActualStatusCode())
+                    .append("\n");
+
+            builder.append("\n");
+        }
+
+        return builder.toString();
+    }
 }

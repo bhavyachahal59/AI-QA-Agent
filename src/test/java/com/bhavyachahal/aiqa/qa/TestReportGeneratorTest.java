@@ -142,4 +142,153 @@ class TestReportGeneratorTest {
 
         server.verify();
     }
+
+    @Test
+    void shouldCalculatePassRate() {
+
+        TestReport report =
+                new TestReport();
+
+        report.addResult(
+                new TestExecutionResult(
+                        "Scenario 1",
+                        200,
+                        "200",
+                        "{}",
+                        true
+                )
+        );
+
+        report.addResult(
+                new TestExecutionResult(
+                        "Scenario 2",
+                        200,
+                        "200",
+                        "{}",
+                        true
+                )
+        );
+
+        report.addResult(
+                new TestExecutionResult(
+                        "Scenario 3",
+                        500,
+                        "200",
+                        "{}",
+                        false
+                )
+        );
+
+        report.addResult(
+                new TestExecutionResult(
+                        "Scenario 4",
+                        400,
+                        "400",
+                        "{}",
+                        true
+                )
+        );
+
+        assertEquals(
+                75.0,
+                report.getPassRate()
+        );
+    }
+
+    @Test
+    void shouldReturnZeroPassRateWhenNoTestsExist() {
+
+        TestReport report =
+                new TestReport();
+
+        assertEquals(
+                0.0,
+                report.getPassRate()
+        );
+
+        assertEquals(
+                0,
+                report.getTotalTests()
+        );
+
+        assertEquals(
+                0,
+                report.getPassedTests()
+        );
+
+        assertEquals(
+                0,
+                report.getFailedTests()
+        );
+    }
+
+    @Test
+    void shouldGenerateHumanReadableReportSummary() {
+
+        TestReport report =
+                new TestReport();
+
+        report.addResult(
+                new TestExecutionResult(
+                        "Valid request",
+                        200,
+                        "200",
+                        "{\"id\":1}",
+                        true
+                )
+        );
+
+        report.addResult(
+                new TestExecutionResult(
+                        "Missing required parameter: username",
+                        200,
+                        "400",
+                        "{\"id\":1}",
+                        false
+                )
+        );
+
+        String summary =
+                report.toSummary();
+
+        assertTrue(
+                summary.contains("API Test Report")
+        );
+
+        assertTrue(
+                summary.contains("Total: 2")
+        );
+
+        assertTrue(
+                summary.contains("Passed: 1")
+        );
+
+        assertTrue(
+                summary.contains("Failed: 1")
+        );
+
+        assertTrue(
+                summary.contains("Pass rate: 50.0%")
+        );
+
+        assertTrue(
+                summary.contains(
+                        "PASS | Valid request"
+                )
+        );
+
+        assertTrue(
+                summary.contains(
+                        "FAIL | Missing required parameter: username"
+                )
+        );
+
+        assertTrue(
+                summary.contains("Expected: 400")
+        );
+
+        assertTrue(
+                summary.contains("Actual: 200")
+        );
+    }
 }
