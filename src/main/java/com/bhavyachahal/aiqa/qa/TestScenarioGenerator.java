@@ -149,26 +149,205 @@ public class TestScenarioGenerator {
                     if ("string".equalsIgnoreCase(
                             parameter.getType())) {
 
-                        TestScenario emptyScenario =
-                                new TestScenario(
-                                        "Empty value: "
-                                                + parameter.getName(),
-                                        "Verify the endpoint handles an empty string for the "
-                                                + parameter.getLocation()
-                                                + " parameter '"
-                                                + parameter.getName()
-                                                + "'",
-                                        "BOUNDARY"
-                                );
+                        if (parameter.getMinLength() != null
+                                || parameter.getMaxLength() != null) {
 
-                        emptyScenario.addParameterValue(
-                                parameter.getName(),
-                                ""
-                        );
+                            generateStringParameterLengthScenarios(
+                                    endpoint,
+                                    parameter,
+                                    scenarios
+                            );
 
-                        scenarios.add(emptyScenario);
+                        } else {
+
+                            TestScenario emptyScenario =
+                                    new TestScenario(
+                                            "Empty value: "
+                                                    + parameter.getName(),
+                                            "Verify the endpoint handles an empty string for the "
+                                                    + parameter.getLocation()
+                                                    + " parameter '"
+                                                    + parameter.getName()
+                                                    + "'",
+                                            "BOUNDARY"
+                                    );
+
+                            emptyScenario.addParameterValue(
+                                    parameter.getName(),
+                                    ""
+                            );
+
+                            scenarios.add(emptyScenario);
+                        }
+                        if (parameter.getPattern() != null
+                                && !parameter.getPattern().isBlank()) {
+
+                            generateParameterPatternScenario(
+                                    endpoint,
+                                    parameter,
+                                    scenarios
+                            );
+                        }
                     }
                 });
+    }
+
+    private void generateParameterPatternScenario(
+            ApiEndpoint endpoint,
+            ApiParameter parameter,
+            List<TestScenario> scenarios) {
+
+        String invalidValue =
+                generatePatternViolatingValue(
+                        parameter.getPattern()
+                );
+
+        TestScenario scenario =
+                new TestScenario(
+                        "Invalid pattern: "
+                                + parameter.getName(),
+                        "Verify the endpoint rejects a value that does not match the required pattern "
+                                + "for parameter '"
+                                + parameter.getName()
+                                + "'",
+                        "VALIDATION"
+                );
+
+        scenario.addParameterValue(
+                parameter.getName(),
+                invalidValue
+        );
+
+        scenario.setExpectedStatusCode(
+                findClientErrorStatusCode(endpoint)
+        );
+
+        scenarios.add(scenario);
+    }
+
+    private void generateStringParameterLengthScenarios(
+            ApiEndpoint endpoint,
+            ApiParameter parameter,
+            List<TestScenario> scenarios) {
+
+        if (parameter.getMinLength() != null) {
+
+            int minLength =
+                    parameter.getMinLength();
+
+            if (minLength > 0) {
+
+                TestScenario belowMinimumScenario =
+                        new TestScenario(
+                                "Below minimum length: "
+                                        + parameter.getName(),
+                                "Verify the endpoint rejects a string shorter than the minimum length "
+                                        + "for parameter '"
+                                        + parameter.getName()
+                                        + "'",
+                                "VALIDATION"
+                        );
+
+                belowMinimumScenario.addParameterValue(
+                        parameter.getName(),
+                        "a".repeat(
+                                minLength - 1
+                        )
+                );
+
+                belowMinimumScenario.setExpectedStatusCode(
+                        findClientErrorStatusCode(endpoint)
+                );
+
+                scenarios.add(
+                        belowMinimumScenario
+                );
+            }
+
+            TestScenario minimumBoundaryScenario =
+                    new TestScenario(
+                            "Minimum length: "
+                                    + parameter.getName(),
+                            "Verify the endpoint accepts a string at the minimum allowed length "
+                                    + "for parameter '"
+                                    + parameter.getName()
+                                    + "'",
+                            "BOUNDARY"
+                    );
+
+            minimumBoundaryScenario.addParameterValue(
+                    parameter.getName(),
+                    "a".repeat(
+                            minLength
+                    )
+            );
+
+            minimumBoundaryScenario.setExpectedStatusCode(
+                    findSuccessStatusCode(endpoint)
+            );
+
+            scenarios.add(
+                    minimumBoundaryScenario
+            );
+        }
+
+        if (parameter.getMaxLength() != null) {
+
+            int maxLength =
+                    parameter.getMaxLength();
+
+            TestScenario maximumBoundaryScenario =
+                    new TestScenario(
+                            "Maximum length: "
+                                    + parameter.getName(),
+                            "Verify the endpoint accepts a string at the maximum allowed length "
+                                    + "for parameter '"
+                                    + parameter.getName()
+                                    + "'",
+                            "BOUNDARY"
+                    );
+
+            maximumBoundaryScenario.addParameterValue(
+                    parameter.getName(),
+                    "a".repeat(
+                            maxLength
+                    )
+            );
+
+            maximumBoundaryScenario.setExpectedStatusCode(
+                    findSuccessStatusCode(endpoint)
+            );
+
+            scenarios.add(
+                    maximumBoundaryScenario
+            );
+
+            TestScenario aboveMaximumScenario =
+                    new TestScenario(
+                            "Above maximum length: "
+                                    + parameter.getName(),
+                            "Verify the endpoint rejects a string longer than the maximum length "
+                                    + "for parameter '"
+                                    + parameter.getName()
+                                    + "'",
+                            "VALIDATION"
+                    );
+
+            aboveMaximumScenario.addParameterValue(
+                    parameter.getName(),
+                    "a".repeat(
+                            maxLength + 1
+                    )
+            );
+
+            aboveMaximumScenario.setExpectedStatusCode(
+                    findClientErrorStatusCode(endpoint)
+            );
+
+            scenarios.add(
+                    aboveMaximumScenario
+            );
+        }
     }
 
     private void generateIntegerParameterBoundaryScenarios(
@@ -352,7 +531,55 @@ public class TestScenarioGenerator {
             return true;
         }
 
-        return "sample-" + parameter.getName();
+        return generateBaselineParameterStringValue(
+                parameter
+        );
+    }
+
+    private String generateBaselineParameterStringValue(
+            ApiParameter parameter) {
+
+        if (parameter.getPattern() == null
+                || parameter.getPattern().isBlank()) {
+
+            return adjustStringLength(
+                    "sample-" + parameter.getName(),
+                    parameter.getMinLength(),
+                    parameter.getMaxLength()
+            );
+        }
+
+        List<String> candidates =
+                List.of(
+                        "sample_" + parameter.getName(),
+                        "sample",
+                        "test123",
+                        "abc",
+                        "A1"
+                );
+
+        for (String candidate : candidates) {
+
+            String adjustedCandidate =
+                    adjustStringLength(
+                            candidate,
+                            parameter.getMinLength(),
+                            parameter.getMaxLength()
+                    );
+
+            if (adjustedCandidate.matches(
+                    parameter.getPattern()
+            )) {
+
+                return adjustedCandidate;
+            }
+        }
+
+        return adjustStringLength(
+                "a",
+                parameter.getMinLength(),
+                parameter.getMaxLength()
+        );
     }
 
     private Object generateInvalidParameterValue(

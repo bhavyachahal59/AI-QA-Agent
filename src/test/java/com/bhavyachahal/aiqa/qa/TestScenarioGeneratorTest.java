@@ -2,10 +2,7 @@ package com.bhavyachahal.aiqa.qa;
 
 import com.bhavyachahal.aiqa.qa.model.RequestPayload;
 import com.bhavyachahal.aiqa.qa.model.TestScenario;
-import com.bhavyachahal.aiqa.specification.model.ApiEndpoint;
-import com.bhavyachahal.aiqa.specification.model.ApiRequestBody;
-import com.bhavyachahal.aiqa.specification.model.ApiRequestBodyField;
-import com.bhavyachahal.aiqa.specification.model.ApiResponse;
+import com.bhavyachahal.aiqa.specification.model.*;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -1029,6 +1026,245 @@ class TestScenarioGeneratorTest {
                 username.matches(
                         usernameField.getPattern()
                 )
+        );
+    }
+
+    @Test
+    void shouldGenerateSchemaAwareStringParameterLengthScenarios() {
+
+        ApiEndpoint endpoint =
+                new ApiEndpoint();
+
+        endpoint.setPath("/users");
+        endpoint.setMethod("GET");
+
+        ApiParameter usernameParameter =
+                new ApiParameter(
+                        "username",
+                        "query",
+                        true,
+                        "string"
+                );
+
+        usernameParameter.setMinLength(3);
+        usernameParameter.setMaxLength(20);
+
+        endpoint.setParameters(
+                List.of(usernameParameter)
+        );
+
+        endpoint.setResponses(
+                List.of(
+                        new ApiResponse(
+                                "200",
+                                "OK",
+                                "application/json",
+                                null,
+                                null
+                        ),
+                        new ApiResponse(
+                                "400",
+                                "Bad request",
+                                "application/json",
+                                null,
+                                null
+                        )
+                )
+        );
+
+        TestScenarioGenerator generator =
+                new TestScenarioGenerator();
+
+        List<TestScenario> scenarios =
+                generator.generate(endpoint);
+
+        TestScenario belowMinimum =
+                scenarios.stream()
+                        .filter(scenario ->
+                                scenario.getName().equals(
+                                        "Below minimum length: username"
+                                ))
+                        .findFirst()
+                        .orElseThrow();
+
+        assertEquals(
+                2,
+                ((String) belowMinimum
+                        .getParameterValues()
+                        .get("username"))
+                        .length()
+        );
+
+        assertEquals(
+                "400",
+                belowMinimum.getExpectedStatusCode()
+        );
+
+        TestScenario minimumBoundary =
+                scenarios.stream()
+                        .filter(scenario ->
+                                scenario.getName().equals(
+                                        "Minimum length: username"
+                                ))
+                        .findFirst()
+                        .orElseThrow();
+
+        assertEquals(
+                3,
+                ((String) minimumBoundary
+                        .getParameterValues()
+                        .get("username"))
+                        .length()
+        );
+
+        assertEquals(
+                "200",
+                minimumBoundary.getExpectedStatusCode()
+        );
+
+        TestScenario maximumBoundary =
+                scenarios.stream()
+                        .filter(scenario ->
+                                scenario.getName().equals(
+                                        "Maximum length: username"
+                                ))
+                        .findFirst()
+                        .orElseThrow();
+
+        assertEquals(
+                20,
+                ((String) maximumBoundary
+                        .getParameterValues()
+                        .get("username"))
+                        .length()
+        );
+
+        assertEquals(
+                "200",
+                maximumBoundary.getExpectedStatusCode()
+        );
+
+        TestScenario aboveMaximum =
+                scenarios.stream()
+                        .filter(scenario ->
+                                scenario.getName().equals(
+                                        "Above maximum length: username"
+                                ))
+                        .findFirst()
+                        .orElseThrow();
+
+        assertEquals(
+                21,
+                ((String) aboveMaximum
+                        .getParameterValues()
+                        .get("username"))
+                        .length()
+        );
+
+        assertEquals(
+                "400",
+                aboveMaximum.getExpectedStatusCode()
+        );
+    }
+
+    @Test
+    void shouldGeneratePatternAwareParameterScenarios() {
+
+        ApiEndpoint endpoint =
+                new ApiEndpoint();
+
+        endpoint.setPath("/users");
+        endpoint.setMethod("GET");
+
+        ApiParameter usernameParameter =
+                new ApiParameter(
+                        "username",
+                        "query",
+                        true,
+                        "string"
+                );
+
+        usernameParameter.setPattern(
+                "^[a-zA-Z0-9_]+$"
+        );
+
+        endpoint.setParameters(
+                List.of(usernameParameter)
+        );
+
+        endpoint.setResponses(
+                List.of(
+                        new ApiResponse(
+                                "200",
+                                "OK",
+                                "application/json",
+                                null,
+                                null
+                        ),
+                        new ApiResponse(
+                                "400",
+                                "Bad request",
+                                "application/json",
+                                null,
+                                null
+                        )
+                )
+        );
+
+        TestScenarioGenerator generator =
+                new TestScenarioGenerator();
+
+        List<TestScenario> scenarios =
+                generator.generate(endpoint);
+
+        TestScenario invalidPatternScenario =
+                scenarios.stream()
+                        .filter(scenario ->
+                                scenario.getName()
+                                        .equals(
+                                                "Invalid pattern: username"
+                                        ))
+                        .findFirst()
+                        .orElseThrow();
+
+        String invalidValue =
+                (String) invalidPatternScenario
+                        .getParameterValues()
+                        .get("username");
+
+        assertFalse(
+                invalidValue.matches(
+                        usernameParameter.getPattern()
+                )
+        );
+
+        assertEquals(
+                "400",
+                invalidPatternScenario.getExpectedStatusCode()
+        );
+
+        TestScenario validRequest =
+                scenarios.stream()
+                        .filter(scenario ->
+                                scenario.getName()
+                                        .equals("Valid request"))
+                        .findFirst()
+                        .orElseThrow();
+
+        String validValue =
+                (String) validRequest
+                        .getParameterValues()
+                        .get("username");
+
+        assertTrue(
+                validValue.matches(
+                        usernameParameter.getPattern()
+                )
+        );
+
+        assertEquals(
+                "200",
+                validRequest.getExpectedStatusCode()
         );
     }
 }
