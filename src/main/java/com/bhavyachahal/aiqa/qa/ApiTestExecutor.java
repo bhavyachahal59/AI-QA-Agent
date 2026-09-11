@@ -5,8 +5,10 @@ import com.bhavyachahal.aiqa.qa.model.TestScenario;
 import com.bhavyachahal.aiqa.specification.model.ApiEndpoint;
 import com.bhavyachahal.aiqa.specification.model.ApiParameter;
 
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+@Service
 public class ApiTestExecutor {
 
     private final RestClient restClient;
@@ -24,10 +26,23 @@ public class ApiTestExecutor {
             ApiEndpoint endpoint,
             TestScenario scenario) {
 
+        return execute(
+                endpoint,
+                scenario,
+                null
+        );
+    }
+
+    public TestExecutionResult execute(
+            ApiEndpoint endpoint,
+            TestScenario scenario,
+            String baseUrl) {
+
         String uri =
                 buildUri(
                         endpoint,
-                        scenario
+                        scenario,
+                        baseUrl
                 );
 
         RestClient.RequestBodySpec request =
@@ -65,81 +80,123 @@ public class ApiTestExecutor {
         if (scenario.getRequestPayload() != null) {
 
             request.body(
-                    scenario.getRequestPayload().getFields()
+                    scenario.getRequestPayload()
+                            .getFields()
             );
         }
 
-        return request.exchange((clientRequest, clientResponse) -> {
+        return request.exchange(
+                (clientRequest, clientResponse) -> {
 
-            String responseBody =
-                    clientResponse.bodyTo(String.class);
+                    String responseBody =
+                            clientResponse.bodyTo(
+                                    String.class
+                            );
 
-            int actualStatusCode =
-                    clientResponse.getStatusCode().value();
+                    int actualStatusCode =
+                            clientResponse
+                                    .getStatusCode()
+                                    .value();
 
-            String expectedStatusCode =
-                    scenario.getExpectedStatusCode();
+                    String expectedStatusCode =
+                            scenario
+                                    .getExpectedStatusCode();
 
-            boolean successful =
-                    responseValidator.validateStatusCode(
+                    boolean successful =
+                            responseValidator
+                                    .validateStatusCode(
+                                            actualStatusCode,
+                                            expectedStatusCode
+                                    );
+
+                    return new TestExecutionResult(
+                            scenario.getName(),
                             actualStatusCode,
-                            expectedStatusCode
+                            expectedStatusCode,
+                            responseBody,
+                            successful
                     );
-
-            return new TestExecutionResult(
-                    scenario.getName(),
-                    actualStatusCode,
-                    expectedStatusCode,
-                    responseBody,
-                    successful
-            );
-        });
+                }
+        );
     }
 
     private String buildUri(
             ApiEndpoint endpoint,
-            TestScenario scenario) {
+            TestScenario scenario,
+            String baseUrl) {
 
-        String uri = endpoint.getPath();
+        String uri =
+                endpoint.getPath();
 
-        if (endpoint.getParameters() == null) {
+        if (endpoint.getParameters() != null) {
+
+            for (ApiParameter parameter :
+                    endpoint.getParameters()) {
+
+                Object value =
+                        scenario.getParameterValues()
+                                .get(parameter.getName());
+
+                if (value == null) {
+                    continue;
+                }
+
+                if ("path".equalsIgnoreCase(
+                        parameter.getLocation())) {
+
+                    uri = uri.replace(
+                            "{" + parameter.getName() + "}",
+                            String.valueOf(value)
+                    );
+                }
+
+                if ("query".equalsIgnoreCase(
+                        parameter.getLocation())) {
+
+                    String separator =
+                            uri.contains("?")
+                                    ? "&"
+                                    : "?";
+
+                    uri = uri
+                            + separator
+                            + parameter.getName()
+                            + "="
+                            + String.valueOf(value);
+                }
+            }
+        }
+
+        if (baseUrl == null
+                || baseUrl.isBlank()) {
+
             return uri;
         }
 
-        for (ApiParameter parameter :
-                endpoint.getParameters()) {
+        return combineBaseUrlAndPath(
+                baseUrl,
+                uri
+        );
+    }
 
-            Object value =
-                    scenario.getParameterValues()
-                            .get(parameter.getName());
+    private String combineBaseUrlAndPath(
+            String baseUrl,
+            String path) {
 
-            if (value == null) {
-                continue;
-            }
+        String normalizedBaseUrl =
+                baseUrl.endsWith("/")
+                        ? baseUrl.substring(
+                        0,
+                        baseUrl.length() - 1
+                )
+                        : baseUrl;
 
-            if ("path".equalsIgnoreCase(
-                    parameter.getLocation())) {
+        String normalizedPath =
+                path.startsWith("/")
+                        ? path
+                        : "/" + path;
 
-                uri = uri.replace(
-                        "{" + parameter.getName() + "}",
-                        String.valueOf(value)
-                );
-            }
-
-            if ("query".equalsIgnoreCase(
-                    parameter.getLocation())) {
-
-                String separator =
-                        uri.contains("?") ? "&" : "?";
-
-                uri = uri
-                        + separator
-                        + parameter.getName()
-                        + "="
-                        + String.valueOf(value);
-            }
-        }
-
-        return uri;
+        return normalizedBaseUrl
+                + normalizedPath;
     }
 }

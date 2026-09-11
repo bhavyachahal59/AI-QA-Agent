@@ -1,5 +1,8 @@
 package com.bhavyachahal.aiqa.qa;
 
+import org.springframework.stereotype.Service;
+
+@Service
 public class ResponseValidator {
 
     public boolean validateStatusCode(

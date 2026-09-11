@@ -1,7 +1,11 @@
 package com.bhavyachahal.aiqa.controller;
 
+import com.bhavyachahal.aiqa.controller.model.OpenApiExecutionRequest;
 import com.bhavyachahal.aiqa.controller.model.OpenApiScenarioRequest;
+import com.bhavyachahal.aiqa.qa.ApiTestService;
+import com.bhavyachahal.aiqa.qa.TestReport;
 import com.bhavyachahal.aiqa.qa.TestScenarioGenerator;
+import com.bhavyachahal.aiqa.qa.model.TestExecutionResult;
 import com.bhavyachahal.aiqa.qa.model.TestScenario;
 import com.bhavyachahal.aiqa.specification.model.ApiEndpoint;
 import com.bhavyachahal.aiqa.specification.model.ApiSpecification;
@@ -23,16 +27,21 @@ public class QaController {
 
     private final TestScenarioGenerator scenarioGenerator;
     private final OpenApiSpecificationParser specificationParser;
+    private final ApiTestService apiTestService;
 
     public QaController(
             TestScenarioGenerator scenarioGenerator,
-            OpenApiSpecificationParser specificationParser) {
+            OpenApiSpecificationParser specificationParser,
+            ApiTestService apiTestService) {
 
         this.scenarioGenerator =
                 scenarioGenerator;
 
         this.specificationParser =
                 specificationParser;
+
+        this.apiTestService =
+                apiTestService;
     }
 
     @GetMapping("/health")
@@ -58,7 +67,8 @@ public class QaController {
     }
 
     @PostMapping("/openapi/scenarios")
-    public ResponseEntity<List<TestScenario>> generateScenariosFromOpenApi(
+    public ResponseEntity<List<TestScenario>>
+    generateScenariosFromOpenApi(
             @RequestBody OpenApiScenarioRequest request) {
 
         ApiSpecification specification =
@@ -76,7 +86,8 @@ public class QaController {
         List<TestScenario> scenarios =
                 new ArrayList<>();
 
-        for (ApiEndpoint endpoint : endpoints) {
+        for (ApiEndpoint endpoint :
+                endpoints) {
 
             scenarios.addAll(
                     scenarioGenerator.generate(
@@ -87,6 +98,49 @@ public class QaController {
 
         return ResponseEntity.ok(
                 scenarios
+        );
+    }
+
+    @PostMapping("/openapi/execute")
+    public ResponseEntity<TestReport>
+    executeOpenApiSpecification(
+            @RequestBody OpenApiExecutionRequest request) {
+
+        ApiSpecification specification =
+                specificationParser.parse(
+                        request.getContent(),
+                        request.getFormat()
+                );
+
+        List<ApiEndpoint> endpoints =
+                specificationParser.parseEndpoints(
+                        request.getContent(),
+                        specification.getId()
+                );
+
+        TestReport report =
+                new TestReport();
+
+        for (ApiEndpoint endpoint :
+                endpoints) {
+
+            List<TestExecutionResult> results =
+                    apiTestService.executeEndpoint(
+                            endpoint,
+                            request.getBaseUrl()
+                    );
+
+            for (TestExecutionResult result :
+                    results) {
+
+                report.addResult(
+                        result
+                );
+            }
+        }
+
+        return ResponseEntity.ok(
+                report
         );
     }
 }
