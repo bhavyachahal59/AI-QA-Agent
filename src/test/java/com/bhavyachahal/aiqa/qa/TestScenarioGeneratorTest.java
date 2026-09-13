@@ -464,19 +464,6 @@ class TestScenarioGeneratorTest {
                 "201",
                 validRequestScenario.getExpectedStatusCode()
         );
-
-        TestScenario expectedResponseScenario =
-                scenarios.stream()
-                        .filter(scenario ->
-                                scenario.getName()
-                                        .equals("Expected response"))
-                        .findFirst()
-                        .orElseThrow();
-
-        assertEquals(
-                "201",
-                expectedResponseScenario.getExpectedStatusCode()
-        );
     }
 
     @Test

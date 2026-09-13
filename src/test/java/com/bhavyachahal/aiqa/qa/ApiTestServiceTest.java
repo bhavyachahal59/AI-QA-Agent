@@ -11,7 +11,6 @@ import org.springframework.web.client.RestClient;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.web.client.ExpectedCount.twice;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
@@ -66,7 +65,6 @@ class ApiTestServiceTest {
         );
 
         server.expect(
-                        twice(),
                         requestTo("/users")
                 )
                 .andExpect(
@@ -80,7 +78,7 @@ class ApiTestServiceTest {
                 service.executeEndpoint(endpoint);
 
         assertEquals(
-                2,
+                1,
                 results.size()
         );
 
@@ -97,21 +95,6 @@ class ApiTestServiceTest {
         assertEquals(
                 true,
                 results.get(0).isSuccessful()
-        );
-
-        assertEquals(
-                "Expected response",
-                results.get(1).getScenarioName()
-        );
-
-        assertEquals(
-                200,
-                results.get(1).getActualStatusCode()
-        );
-
-        assertEquals(
-                true,
-                results.get(1).isSuccessful()
         );
 
         server.verify();

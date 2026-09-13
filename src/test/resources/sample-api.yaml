@@ -45,6 +45,9 @@ paths:
               schema:
                 type: object
 
+        '400':
+          description: Invalid user request
+
   /users/{id}:
     get:
       summary: Get a user by ID

@@ -62,25 +62,6 @@ public class TestScenarioGenerator {
                 scenarios
         );
 
-        if (endpoint.getResponses() != null
-                && !endpoint.getResponses().isEmpty()) {
-
-            TestScenario expectedResponseScenario =
-                    new TestScenario(
-                            "Expected response",
-                            "Verify the endpoint returns an expected response",
-                            "POSITIVE"
-                    );
-
-            expectedResponseScenario.setExpectedStatusCode(
-                    findSuccessStatusCode(endpoint)
-            );
-
-            scenarios.add(
-                    expectedResponseScenario
-            );
-        }
-
         return scenarios;
     }
 
@@ -375,6 +356,10 @@ public class TestScenarioGenerator {
             boundaryScenario.addParameterValue(
                     parameter.getName(),
                     Integer.MAX_VALUE
+            );
+
+            boundaryScenario.setExpectedStatusCode(
+                    findClientErrorStatusCode(endpoint)
             );
 
             scenarios.add(boundaryScenario);
