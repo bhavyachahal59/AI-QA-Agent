@@ -137,17 +137,29 @@ public class ApiTestExecutor {
                         scenario.getParameterValues()
                                 .get(parameter.getName());
 
-                if (value == null) {
-                    continue;
-                }
-
                 if ("path".equalsIgnoreCase(
                         parameter.getLocation())) {
 
-                    uri = uri.replace(
-                            "{" + parameter.getName() + "}",
-                            String.valueOf(value)
-                    );
+                    if (value == null) {
+
+                        uri = uri.replace(
+                                "{" + parameter.getName() + "}",
+                                ""
+                        );
+
+                    } else {
+
+                        uri = uri.replace(
+                                "{" + parameter.getName() + "}",
+                                String.valueOf(value)
+                        );
+                    }
+
+                    continue;
+                }
+
+                if (value == null) {
+                    continue;
                 }
 
                 if ("query".equalsIgnoreCase(

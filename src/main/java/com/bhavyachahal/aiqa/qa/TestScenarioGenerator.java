@@ -1126,6 +1126,16 @@ public class TestScenarioGenerator {
     private String generateBaselineStringValue(
             ApiRequestBodyField field) {
 
+        if ("email".equalsIgnoreCase(
+                field.getFormat())) {
+
+            return adjustStringLength(
+                    "sample@example.com",
+                    field.getMinLength(),
+                    field.getMaxLength()
+            );
+        }
+
         if (field.getPattern() == null
                 || field.getPattern().isBlank()) {
 

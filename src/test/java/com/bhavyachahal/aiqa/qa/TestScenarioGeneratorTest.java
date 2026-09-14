@@ -160,7 +160,7 @@ class TestScenarioGeneratorTest {
         );
 
         assertEquals(
-                "sample-email",
+                "sample@example.com",
                 invalidIntegerScenario
                         .getRequestPayload()
                         .getFields()
@@ -248,7 +248,7 @@ class TestScenarioGeneratorTest {
         );
 
         assertEquals(
-                "sample-email",
+                "sample@example.com",
                 requestPayload.getFields().get("email")
         );
 
@@ -386,7 +386,7 @@ class TestScenarioGeneratorTest {
                         .orElseThrow();
 
         assertEquals(
-                "sample-email",
+                "sample@example.com",
                 validScenario
                         .getRequestPayload()
                         .getFields()
