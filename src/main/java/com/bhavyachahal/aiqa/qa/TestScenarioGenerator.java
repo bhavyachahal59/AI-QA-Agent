@@ -113,9 +113,19 @@ public class TestScenarioGenerator {
                             generateInvalidParameterValue(parameter)
                     );
 
-                    invalidScenario.setExpectedStatusCode(
-                            findClientErrorStatusCode(endpoint)
-                    );
+                    if ("integer".equalsIgnoreCase(
+                            parameter.getType())) {
+
+                        invalidScenario.setExpectedStatusCode(
+                                "400"
+                        );
+
+                    } else {
+
+                        invalidScenario.setExpectedStatusCode(
+                                findClientErrorStatusCode(endpoint)
+                        );
+                    }
 
                     scenarios.add(invalidScenario);
 
