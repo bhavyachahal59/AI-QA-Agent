@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service
 public class NoOpAiScenarioGenerator
         implements com.bhavyachahal.aiqa.ai.AiScenarioGenerator {
 
