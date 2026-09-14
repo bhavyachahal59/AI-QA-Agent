@@ -6,10 +6,8 @@ public class TestExecutionResult {
     private int actualStatusCode;
     private String expectedStatusCode;
     private String responseBody;
+    private boolean verified;
     private boolean successful;
-
-    public TestExecutionResult() {
-    }
 
     public TestExecutionResult(
             String scenarioName,
@@ -22,6 +20,24 @@ public class TestExecutionResult {
         this.actualStatusCode = actualStatusCode;
         this.expectedStatusCode = expectedStatusCode;
         this.responseBody = responseBody;
+        this.verified =
+                expectedStatusCode != null;
+        this.successful = successful;
+    }
+
+    public TestExecutionResult(
+            String scenarioName,
+            int actualStatusCode,
+            String expectedStatusCode,
+            String responseBody,
+            boolean verified,
+            boolean successful) {
+
+        this.scenarioName = scenarioName;
+        this.actualStatusCode = actualStatusCode;
+        this.expectedStatusCode = expectedStatusCode;
+        this.responseBody = responseBody;
+        this.verified = verified;
         this.successful = successful;
     }
 
@@ -29,7 +45,9 @@ public class TestExecutionResult {
         return scenarioName;
     }
 
-    public void setScenarioName(String scenarioName) {
+    public void setScenarioName(
+            String scenarioName) {
+
         this.scenarioName = scenarioName;
     }
 
@@ -37,7 +55,9 @@ public class TestExecutionResult {
         return actualStatusCode;
     }
 
-    public void setActualStatusCode(int actualStatusCode) {
+    public void setActualStatusCode(
+            int actualStatusCode) {
+
         this.actualStatusCode = actualStatusCode;
     }
 
@@ -45,23 +65,40 @@ public class TestExecutionResult {
         return expectedStatusCode;
     }
 
-    public void setExpectedStatusCode(String expectedStatusCode) {
-        this.expectedStatusCode = expectedStatusCode;
+    public void setExpectedStatusCode(
+            String expectedStatusCode) {
+
+        this.expectedStatusCode =
+                expectedStatusCode;
     }
 
     public String getResponseBody() {
         return responseBody;
     }
 
-    public void setResponseBody(String responseBody) {
+    public void setResponseBody(
+            String responseBody) {
+
         this.responseBody = responseBody;
+    }
+
+    public boolean isVerified() {
+        return verified;
+    }
+
+    public void setVerified(
+            boolean verified) {
+
+        this.verified = verified;
     }
 
     public boolean isSuccessful() {
         return successful;
     }
 
-    public void setSuccessful(boolean successful) {
+    public void setSuccessful(
+            boolean successful) {
+
         this.successful = successful;
     }
 }

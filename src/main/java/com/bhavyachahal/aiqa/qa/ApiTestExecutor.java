@@ -102,8 +102,12 @@ public class ApiTestExecutor {
                             scenario
                                     .getExpectedStatusCode();
 
+                    boolean verified =
+                            expectedStatusCode != null;
+
                     boolean successful =
-                            responseValidator
+                            verified
+                                    && responseValidator
                                     .validateStatusCode(
                                             actualStatusCode,
                                             expectedStatusCode
@@ -114,6 +118,7 @@ public class ApiTestExecutor {
                             actualStatusCode,
                             expectedStatusCode,
                             responseBody,
+                            verified,
                             successful
                     );
                 }

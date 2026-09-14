@@ -27,24 +27,41 @@ public class TestReport {
 
     public long getPassedTests() {
         return results.stream()
+                .filter(TestExecutionResult::isVerified)
                 .filter(TestExecutionResult::isSuccessful)
                 .count();
     }
 
     public long getFailedTests() {
         return results.stream()
+                .filter(TestExecutionResult::isVerified)
                 .filter(result -> !result.isSuccessful())
+                .count();
+    }
+
+    public long getUnverifiedTests() {
+        return results.stream()
+                .filter(result -> !result.isVerified())
+                .count();
+    }
+
+    public long getVerifiedTests() {
+        return results.stream()
+                .filter(TestExecutionResult::isVerified)
                 .count();
     }
 
     public double getPassRate() {
 
-        if (results.isEmpty()) {
+        long verifiedTests =
+                getVerifiedTests();
+
+        if (verifiedTests == 0) {
             return 0.0;
         }
 
         return ((double) getPassedTests()
-                / getTotalTests()) * 100;
+                / verifiedTests) * 100;
     }
 
     public String toSummary() {
@@ -59,12 +76,20 @@ public class TestReport {
                 .append(getTotalTests())
                 .append("\n");
 
+        builder.append("Verified: ")
+                .append(getVerifiedTests())
+                .append("\n");
+
         builder.append("Passed: ")
                 .append(getPassedTests())
                 .append("\n");
 
         builder.append("Failed: ")
                 .append(getFailedTests())
+                .append("\n");
+
+        builder.append("Unverified: ")
+                .append(getUnverifiedTests())
                 .append("\n");
 
         builder.append("Pass rate: ")
@@ -75,11 +100,18 @@ public class TestReport {
 
         for (TestExecutionResult result : results) {
 
-            builder.append(
-                    result.isSuccessful()
-                            ? "PASS"
-                            : "FAIL"
-            );
+            if (!result.isVerified()) {
+
+                builder.append("UNVERIFIED");
+
+            } else if (result.isSuccessful()) {
+
+                builder.append("PASS");
+
+            } else {
+
+                builder.append("FAIL");
+            }
 
             builder.append(" | ")
                     .append(result.getScenarioName())
@@ -112,12 +144,20 @@ public class TestReport {
                 .append(getTotalTests())
                 .append("\n");
 
+        builder.append("- Verified: ")
+                .append(getVerifiedTests())
+                .append("\n");
+
         builder.append("- Passed: ")
                 .append(getPassedTests())
                 .append("\n");
 
         builder.append("- Failed: ")
                 .append(getFailedTests())
+                .append("\n");
+
+        builder.append("- Unverified: ")
+                .append(getUnverifiedTests())
                 .append("\n");
 
         builder.append("- Pass rate: ")
@@ -128,12 +168,23 @@ public class TestReport {
 
         for (TestExecutionResult result : results) {
 
+            String status;
+
+            if (!result.isVerified()) {
+
+                status = "UNVERIFIED";
+
+            } else if (result.isSuccessful()) {
+
+                status = "PASS";
+
+            } else {
+
+                status = "FAIL";
+            }
+
             builder.append("### ")
-                    .append(
-                            result.isSuccessful()
-                                    ? "PASS"
-                                    : "FAIL"
-                    )
+                    .append(status)
                     .append(" — ")
                     .append(result.getScenarioName())
                     .append("\n\n");
