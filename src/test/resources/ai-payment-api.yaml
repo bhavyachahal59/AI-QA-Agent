@@ -1,0 +1,42 @@
+openapi: 3.0.3
+
+info:
+  title: Payment API
+  version: 1.0.0
+
+paths:
+  /payments:
+    post:
+      summary: Transfer money between accounts
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sourceAccountId
+                - destinationAccountId
+                - amount
+
+              properties:
+                sourceAccountId:
+                  type: string
+
+                destinationAccountId:
+                  type: string
+
+                amount:
+                  type: integer
+                  minimum: 1
+
+      responses:
+        "201":
+          description: Payment created
+
+        "400":
+          description: Invalid payment
+
+        "409":
+          description: Duplicate payment

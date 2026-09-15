@@ -2,7 +2,6 @@ package com.bhavyachahal.aiqa.ai;
 
 import org.springframework.stereotype.Service;
 
-@Service
 public class NoOpLlmClient
         implements LlmClient {
 
