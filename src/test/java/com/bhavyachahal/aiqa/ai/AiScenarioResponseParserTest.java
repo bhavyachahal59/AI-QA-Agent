@@ -89,4 +89,61 @@ class AiScenarioResponseParserTest {
                 scenarios.isEmpty()
         );
     }
+
+    @Test
+    void shouldParseExecutableScenarioRequestBody() {
+
+        String response =
+                """
+                [
+                  {
+                    "name": "Reject transfer to same account",
+                    "description": "Verify self-transfer rejection",
+                    "type": "AI_EXECUTABLE",
+                    "requestBody": {
+                      "sourceAccountId": "account-1",
+                      "destinationAccountId": "account-1",
+                      "amount": 100
+                    }
+                  }
+                ]
+                """;
+
+        List<TestScenario> scenarios =
+                parser.parse(response);
+
+        assertEquals(
+                1,
+                scenarios.size()
+        );
+
+        TestScenario scenario =
+                scenarios.get(0);
+
+        assertEquals(
+                "AI_EXECUTABLE",
+                scenario.getType()
+        );
+
+        assertEquals(
+                "account-1",
+                scenario.getRequestPayload()
+                        .getFields()
+                        .get("sourceAccountId")
+        );
+
+        assertEquals(
+                "account-1",
+                scenario.getRequestPayload()
+                        .getFields()
+                        .get("destinationAccountId")
+        );
+
+        assertEquals(
+                100,
+                scenario.getRequestPayload()
+                        .getFields()
+                        .get("amount")
+        );
+    }
 }

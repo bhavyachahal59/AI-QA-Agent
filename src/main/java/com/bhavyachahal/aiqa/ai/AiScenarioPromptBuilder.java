@@ -27,6 +27,29 @@ public class AiScenarioPromptBuilder {
                 Focus on scenarios that require semantic reasoning or business
                 knowledge that cannot be derived directly from the OpenAPI
                 schema.
+                
+                Do not generate any scenario that can already be derived from
+                the OpenAPI schema.
+                
+                This includes:
+                - missing required fields
+                - invalid primitive data types
+                - values below minimum or above maximum
+                - values at minimum or maximum boundaries
+                - strings shorter than minLength or longer than maxLength
+                - regex or pattern violations
+                - invalid documented formats
+                - empty required values
+                
+                For example, if a numeric field has minimum: 1, do NOT generate
+                zero or negative-value scenarios. Those are schema validation
+                tests and are handled by the deterministic test generator.
+                
+                AI scenarios must add behavior that requires semantic reasoning
+                beyond individual OpenAPI field constraints.
+                
+                Prefer cross-field relationships and business rules that cannot
+                be expressed by the individual field schemas.
 
                 Return only JSON.
 
@@ -63,7 +86,10 @@ public class AiScenarioPromptBuilder {
                   {
                     "name": "Scenario name",
                     "description": "What business behavior should be tested",
-                    "type": "AI_RECOMMENDATION"
+                    "type": "AI_EXECUTABLE",
+                    "requestBody": {
+                      "fieldName": "value"
+                    }
                   }
                 ]
                 
@@ -75,12 +101,23 @@ public class AiScenarioPromptBuilder {
                 - It must not require database setup, account state, previous
                   requests, external services, or verification of side effects
                   outside the HTTP response.
+                - Include a complete requestBody containing values for all
+                  request body fields needed to execute the scenario.
+                - Preserve the data types declared by the API contract.
+                  Numbers must be JSON numbers, booleans must be JSON booleans,
+                  and strings must be JSON strings.
+                - The requestBody must specifically represent the semantic
+                  condition described by the scenario.
+                - Do not classify a scenario as AI_EXECUTABLE if you cannot
+                  construct the required request data from the API contract.
                 
                 AI_RECOMMENDATION
                 - Use when the scenario requires business state, test setup,
                   previous requests, external systems, persistence checks,
                   balance verification, or other information not available
                   directly from the API contract.
+                - Do not include requestBody unless it provides meaningful
+                  illustrative information.
                 
                 Be conservative. If you are uncertain whether a scenario can
                 be executed independently, classify it as AI_RECOMMENDATION.

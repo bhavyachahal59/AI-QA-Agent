@@ -80,5 +80,41 @@ class AiScenarioGenerationIntegrationTest {
                                         )
                         )
         );
+
+        List<TestScenario> executableAiScenarios =
+                scenarios.stream()
+                        .filter(
+                                scenario ->
+                                        "AI_EXECUTABLE".equals(
+                                                scenario.getType()
+                                        )
+                        )
+                        .toList();
+
+        for (TestScenario scenario :
+                executableAiScenarios) {
+
+            assertTrue(
+                    scenario.getRequestPayload() != null,
+                    "AI_EXECUTABLE scenario must contain request payload: "
+                            + scenario.getName()
+            );
+
+            assertFalse(
+                    scenario.getRequestPayload()
+                            .getFields()
+                            .isEmpty(),
+                    "AI_EXECUTABLE scenario must contain request fields: "
+                            + scenario.getName()
+            );
+
+            System.out.println(
+                    "AI REQUEST PAYLOAD | "
+                            + scenario.getName()
+                            + " | "
+                            + scenario.getRequestPayload()
+                            .getFields()
+            );
+        }
     }
 }

@@ -1,5 +1,6 @@
 package com.bhavyachahal.aiqa.ai;
 
+import com.bhavyachahal.aiqa.qa.model.RequestPayload;
 import com.bhavyachahal.aiqa.qa.model.TestScenario;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,7 +38,7 @@ public class AiScenarioResponseParser {
 
         try {
 
-            List<Map<String, String>> rawScenarios =
+            List<Map<String, Object>> rawScenarios =
                     objectMapper.readValue(
                             response,
                             new TypeReference<>() {
@@ -47,17 +48,23 @@ public class AiScenarioResponseParser {
             List<TestScenario> scenarios =
                     new ArrayList<>();
 
-            for (Map<String, String> rawScenario :
+            for (Map<String, Object> rawScenario :
                     rawScenarios) {
 
                 String name =
-                        rawScenario.get("name");
+                        asString(
+                                rawScenario.get("name")
+                        );
 
                 String description =
-                        rawScenario.get("description");
+                        asString(
+                                rawScenario.get("description")
+                        );
 
                 String type =
-                        rawScenario.get("type");
+                        asString(
+                                rawScenario.get("type")
+                        );
 
                 if (name == null
                         || name.isBlank()) {
@@ -72,6 +79,37 @@ public class AiScenarioResponseParser {
                                 type
                         );
 
+                Object requestBody =
+                        rawScenario.get(
+                                "requestBody"
+                        );
+
+                if (requestBody
+                        instanceof Map<?, ?> rawRequestBody) {
+
+                    RequestPayload requestPayload =
+                            new RequestPayload();
+
+                    for (Map.Entry<?, ?> entry :
+                            rawRequestBody.entrySet()) {
+
+                        if (entry.getKey() == null) {
+                            continue;
+                        }
+
+                        requestPayload.addField(
+                                String.valueOf(
+                                        entry.getKey()
+                                ),
+                                entry.getValue()
+                        );
+                    }
+
+                    scenario.setRequestPayload(
+                            requestPayload
+                    );
+                }
+
                 scenarios.add(
                         scenario
                 );
@@ -83,5 +121,13 @@ public class AiScenarioResponseParser {
 
             return List.of();
         }
+    }
+
+    private String asString(
+            Object value) {
+
+        return value == null
+                ? null
+                : String.valueOf(value);
     }
 }

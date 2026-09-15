@@ -61,5 +61,23 @@ class AiScenarioPromptBuilderTest {
         assertTrue(
                 prompt.contains("AI_RECOMMENDATION")
         );
+
+        assertTrue(
+                prompt.contains(
+                        "Do not generate any scenario that can already be derived from"
+                )
+        );
+
+        assertTrue(
+                prompt.contains(
+                        "values below minimum or above maximum"
+                )
+        );
+
+        assertTrue(
+                prompt.contains(
+                        "Prefer cross-field relationships and business rules"
+                )
+        );
     }
 }
