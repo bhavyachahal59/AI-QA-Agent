@@ -55,7 +55,11 @@ class AiScenarioPromptBuilderTest {
         );
 
         assertTrue(
-                prompt.contains("AI_SEMANTIC")
+                prompt.contains("AI_EXECUTABLE")
+        );
+
+        assertTrue(
+                prompt.contains("AI_RECOMMENDATION")
         );
     }
 }

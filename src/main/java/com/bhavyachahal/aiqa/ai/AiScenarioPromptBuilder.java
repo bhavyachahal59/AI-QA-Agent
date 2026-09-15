@@ -58,15 +58,33 @@ public class AiScenarioPromptBuilder {
         prompt.append("""
                 
                 Return a JSON array using exactly this structure:
-
+                
                 [
                   {
                     "name": "Scenario name",
                     "description": "What business behavior should be tested",
-                    "type": "AI_SEMANTIC"
+                    "type": "AI_RECOMMENDATION"
                   }
                 ]
-
+                
+                Use exactly one of these types:
+                
+                AI_EXECUTABLE
+                - Use only when the scenario can be executed using information
+                  available directly from the API contract and request itself.
+                - It must not require database setup, account state, previous
+                  requests, external services, or verification of side effects
+                  outside the HTTP response.
+                
+                AI_RECOMMENDATION
+                - Use when the scenario requires business state, test setup,
+                  previous requests, external systems, persistence checks,
+                  balance verification, or other information not available
+                  directly from the API contract.
+                
+                Be conservative. If you are uncertain whether a scenario can
+                be executed independently, classify it as AI_RECOMMENDATION.
+                
                 Generate at most 5 high-value scenarios.
                 Do not include explanations outside the JSON array.
                 """);

@@ -72,7 +72,10 @@ class AiScenarioGenerationIntegrationTest {
                 scenarios.stream()
                         .anyMatch(
                                 scenario ->
-                                        "AI_SEMANTIC".equals(
+                                        "AI_EXECUTABLE".equals(
+                                                scenario.getType()
+                                        )
+                                                || "AI_RECOMMENDATION".equals(
                                                 scenario.getType()
                                         )
                         )
