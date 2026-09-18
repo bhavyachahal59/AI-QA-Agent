@@ -11,6 +11,7 @@ public class TestScenario {
     private String testData;
     private RequestPayload requestPayload;
     private String expectedStatusCode;
+    private String expectedOutcome;
 
     private Map<String, Object> parameterValues =
             new LinkedHashMap<>();
@@ -91,4 +92,13 @@ public class TestScenario {
     public void setExpectedStatusCode(String expectedStatusCode) {
         this.expectedStatusCode = expectedStatusCode;
     }
+
+    public String getExpectedOutcome() {
+        return expectedOutcome;
+    }
+
+    public void setExpectedOutcome(String expectedOutcome) {
+        this.expectedOutcome = expectedOutcome;
+    }
+
 }

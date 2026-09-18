@@ -100,6 +100,7 @@ class AiScenarioResponseParserTest {
                     "name": "Reject transfer to same account",
                     "description": "Verify self-transfer rejection",
                     "type": "AI_EXECUTABLE",
+                    "expectedOutcome": "REJECT",
                     "requestBody": {
                       "sourceAccountId": "account-1",
                       "destinationAccountId": "account-1",
@@ -144,6 +145,11 @@ class AiScenarioResponseParserTest {
                 scenario.getRequestPayload()
                         .getFields()
                         .get("amount")
+        );
+
+        assertEquals(
+                "REJECT",
+                scenario.getExpectedOutcome()
         );
     }
 }

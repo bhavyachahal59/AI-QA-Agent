@@ -84,13 +84,14 @@ public class AiScenarioPromptBuilder {
                 
                 [
                   {
-                    "name": "Scenario name",
-                    "description": "What business behavior should be tested",
-                    "type": "AI_EXECUTABLE",
-                    "requestBody": {
-                      "fieldName": "value"
-                    }
-                  }
+                     "name": "Scenario name",
+                     "description": "What business behavior should be tested",
+                     "type": "AI_EXECUTABLE",
+                     "expectedOutcome": "REJECT",
+                     "requestBody": {
+                       "fieldName": "value"
+                     }
+                   }
                 ]
                 
                 Use exactly one of these types:
@@ -110,6 +111,17 @@ public class AiScenarioPromptBuilder {
                   condition described by the scenario.
                 - Do not classify a scenario as AI_EXECUTABLE if you cannot
                   construct the required request data from the API contract.
+                  
+                Expected outcome:
+                - For AI_EXECUTABLE scenarios, include expectedOutcome.
+                - Use exactly one of these values:
+                  ACCEPT
+                  REJECT
+                - ACCEPT means the request should be accepted by the API.
+                - REJECT means the request should be rejected by the API.
+                - Do NOT generate or guess HTTP status codes.
+                - The deterministic engine will map the semantic outcome to a
+                  documented OpenAPI response.  
                 
                 AI_RECOMMENDATION
                 - Use when the scenario requires business state, test setup,

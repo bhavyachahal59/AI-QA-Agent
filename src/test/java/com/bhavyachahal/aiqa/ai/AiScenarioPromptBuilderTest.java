@@ -79,5 +79,17 @@ class AiScenarioPromptBuilderTest {
                         "Prefer cross-field relationships and business rules"
                 )
         );
+
+        assertTrue(
+                prompt.contains(
+                        "\"expectedOutcome\": \"REJECT\""
+                )
+        );
+
+        assertTrue(
+                prompt.contains(
+                        "Do NOT generate or guess HTTP status codes"
+                )
+        );
     }
 }

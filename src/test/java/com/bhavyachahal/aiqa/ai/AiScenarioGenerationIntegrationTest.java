@@ -12,8 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @EnabledIfEnvironmentVariable(
@@ -115,6 +114,30 @@ class AiScenarioGenerationIntegrationTest {
                             + scenario.getRequestPayload()
                             .getFields()
             );
+
+            System.out.println(
+                    "AI EXPECTATION | "
+                            + scenario.getName()
+                            + " | outcome="
+                            + scenario.getExpectedOutcome()
+                            + " | status="
+                            + scenario.getExpectedStatusCode()
+            );
+        }
+
+        for (TestScenario scenario :
+                executableAiScenarios) {
+
+            if ("REJECT".equals(
+                    scenario.getExpectedOutcome()
+            )) {
+
+                assertNull(
+                        scenario.getExpectedStatusCode(),
+                        "Ambiguous REJECT outcome must remain unverified "
+                                + "when multiple 4xx responses are documented"
+                );
+            }
         }
     }
 }

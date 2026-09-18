@@ -78,6 +78,16 @@ public class AiScenarioResponseParser {
                                 description,
                                 type
                         );
+                String expectedOutcome =
+                        asString(
+                                rawScenario.get(
+                                        "expectedOutcome"
+                                )
+                        );
+
+                scenario.setExpectedOutcome(
+                        expectedOutcome
+                );
 
                 Object requestBody =
                         rawScenario.get(

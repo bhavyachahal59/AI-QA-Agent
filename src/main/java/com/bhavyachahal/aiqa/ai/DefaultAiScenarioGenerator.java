@@ -13,20 +13,19 @@ public class DefaultAiScenarioGenerator
     private final AiScenarioPromptBuilder promptBuilder;
     private final LlmClient llmClient;
     private final AiScenarioResponseParser responseParser;
+    private final AiExpectedStatusResolver expectedStatusResolver;
 
     public DefaultAiScenarioGenerator(
             AiScenarioPromptBuilder promptBuilder,
             LlmClient llmClient,
-            AiScenarioResponseParser responseParser) {
+            AiScenarioResponseParser responseParser,
+            AiExpectedStatusResolver expectedStatusResolver) {
 
-        this.promptBuilder =
-                promptBuilder;
-
-        this.llmClient =
-                llmClient;
-
-        this.responseParser =
-                responseParser;
+        this.promptBuilder = promptBuilder;
+        this.llmClient = llmClient;
+        this.responseParser = responseParser;
+        this.expectedStatusResolver =
+                expectedStatusResolver;
     }
 
     @Override
@@ -34,17 +33,33 @@ public class DefaultAiScenarioGenerator
             ApiEndpoint endpoint) {
 
         String prompt =
-                promptBuilder.build(
-                        endpoint
-                );
+                promptBuilder.build(endpoint);
 
         String response =
-                llmClient.generate(
-                        prompt
-                );
+                llmClient.generate(prompt);
 
-        return responseParser.parse(
-                response
-        );
+        List<TestScenario> scenarios =
+                responseParser.parse(response);
+
+        for (TestScenario scenario : scenarios) {
+
+            if (!"AI_EXECUTABLE".equals(
+                    scenario.getType())) {
+
+                continue;
+            }
+
+            String expectedStatusCode =
+                    expectedStatusResolver.resolve(
+                            endpoint,
+                            scenario.getExpectedOutcome()
+                    );
+
+            scenario.setExpectedStatusCode(
+                    expectedStatusCode
+            );
+        }
+
+        return scenarios;
     }
 }
