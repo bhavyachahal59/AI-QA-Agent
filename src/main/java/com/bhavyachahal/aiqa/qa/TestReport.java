@@ -100,18 +100,9 @@ public class TestReport {
 
         for (TestExecutionResult result : results) {
 
-            if (!result.isVerified()) {
-
-                builder.append("UNVERIFIED");
-
-            } else if (result.isSuccessful()) {
-
-                builder.append("PASS");
-
-            } else {
-
-                builder.append("FAIL");
-            }
+            builder.append(
+                    result.getStatus()
+            );
 
             builder.append(" | ")
                     .append(result.getScenarioName())
@@ -168,20 +159,8 @@ public class TestReport {
 
         for (TestExecutionResult result : results) {
 
-            String status;
-
-            if (!result.isVerified()) {
-
-                status = "UNVERIFIED";
-
-            } else if (result.isSuccessful()) {
-
-                status = "PASS";
-
-            } else {
-
-                status = "FAIL";
-            }
+            String status =
+                    result.getStatus();
 
             builder.append("### ")
                     .append(status)
@@ -196,6 +175,24 @@ public class TestReport {
             builder.append("- Actual status: ")
                     .append(result.getActualStatusCode())
                     .append("\n");
+
+            builder.append("- Source: ")
+                    .append(result.getSource())
+                    .append("\n");
+
+            if (result.getScenarioType() != null) {
+
+                builder.append("- Scenario type: ")
+                        .append(result.getScenarioType())
+                        .append("\n");
+            }
+
+            if (result.getExpectedOutcome() != null) {
+
+                builder.append("- Expected semantic outcome: ")
+                        .append(result.getExpectedOutcome())
+                        .append("\n");
+            }
 
             if (result.getResponseBody() != null
                     && !result.getResponseBody().isBlank()) {

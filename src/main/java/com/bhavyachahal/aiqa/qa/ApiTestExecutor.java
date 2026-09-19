@@ -113,14 +113,25 @@ public class ApiTestExecutor {
                                             expectedStatusCode
                                     );
 
-                    return new TestExecutionResult(
-                            scenario.getName(),
-                            actualStatusCode,
-                            expectedStatusCode,
-                            responseBody,
-                            verified,
-                            successful
+                    TestExecutionResult result =
+                            new TestExecutionResult(
+                                    scenario.getName(),
+                                    actualStatusCode,
+                                    expectedStatusCode,
+                                    responseBody,
+                                    verified,
+                                    successful
+                            );
+
+                    result.setScenarioType(
+                            scenario.getType()
                     );
+
+                    result.setExpectedOutcome(
+                            scenario.getExpectedOutcome()
+                    );
+
+                    return result;
                 }
         );
     }

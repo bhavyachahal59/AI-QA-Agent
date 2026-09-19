@@ -3,10 +3,19 @@ package com.bhavyachahal.aiqa.qa.model;
 public class TestExecutionResult {
 
     private String scenarioName;
+
+    private String scenarioType;
+
+    private String expectedOutcome;
+
     private int actualStatusCode;
+
     private String expectedStatusCode;
+
     private String responseBody;
+
     private boolean verified;
+
     private boolean successful;
 
     public TestExecutionResult(
@@ -49,6 +58,26 @@ public class TestExecutionResult {
             String scenarioName) {
 
         this.scenarioName = scenarioName;
+    }
+
+    public String getScenarioType() {
+        return scenarioType;
+    }
+
+    public void setScenarioType(
+            String scenarioType) {
+
+        this.scenarioType = scenarioType;
+    }
+
+    public String getExpectedOutcome() {
+        return expectedOutcome;
+    }
+
+    public void setExpectedOutcome(
+            String expectedOutcome) {
+
+        this.expectedOutcome = expectedOutcome;
     }
 
     public int getActualStatusCode() {
@@ -100,5 +129,29 @@ public class TestExecutionResult {
             boolean successful) {
 
         this.successful = successful;
+    }
+
+    public String getStatus() {
+
+        if (!verified) {
+            return "UNVERIFIED";
+        }
+
+        if (successful) {
+            return "PASS";
+        }
+
+        return "FAIL";
+    }
+
+    public String getSource() {
+
+        if (scenarioType != null
+                && scenarioType.startsWith("AI_")) {
+
+            return "AI";
+        }
+
+        return "DETERMINISTIC";
     }
 }
