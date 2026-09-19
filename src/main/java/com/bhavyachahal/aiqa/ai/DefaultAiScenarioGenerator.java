@@ -13,17 +13,20 @@ public class DefaultAiScenarioGenerator
     private final AiScenarioPromptBuilder promptBuilder;
     private final LlmClient llmClient;
     private final AiScenarioResponseParser responseParser;
+    private final AiScenarioSchemaFilter schemaFilter;
     private final AiExpectedStatusResolver expectedStatusResolver;
 
     public DefaultAiScenarioGenerator(
             AiScenarioPromptBuilder promptBuilder,
             LlmClient llmClient,
             AiScenarioResponseParser responseParser,
+            AiScenarioSchemaFilter schemaFilter,
             AiExpectedStatusResolver expectedStatusResolver) {
 
         this.promptBuilder = promptBuilder;
         this.llmClient = llmClient;
         this.responseParser = responseParser;
+        this.schemaFilter = schemaFilter;
         this.expectedStatusResolver =
                 expectedStatusResolver;
     }
@@ -38,8 +41,14 @@ public class DefaultAiScenarioGenerator
         String response =
                 llmClient.generate(prompt);
 
-        List<TestScenario> scenarios =
+        List<TestScenario> parsedScenarios =
                 responseParser.parse(response);
+
+        List<TestScenario> scenarios =
+                schemaFilter.filter(
+                        endpoint,
+                        parsedScenarios
+                );
 
         for (TestScenario scenario : scenarios) {
 

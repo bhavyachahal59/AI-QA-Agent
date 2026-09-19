@@ -2,8 +2,11 @@ package com.bhavyachahal.aiqa.ai;
 
 import com.bhavyachahal.aiqa.qa.model.TestScenario;
 import com.bhavyachahal.aiqa.specification.model.ApiEndpoint;
+import com.bhavyachahal.aiqa.specification.model.ApiRequestBody;
+import com.bhavyachahal.aiqa.specification.model.ApiRequestBodyField;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -28,6 +31,9 @@ class DefaultAiScenarioGeneratorTest {
 
         AiScenarioResponseParser responseParser =
                 new AiScenarioResponseParser();
+
+        AiScenarioSchemaFilter schemaFilter =
+                new AiScenarioSchemaFilter();
 
         ApiEndpoint endpoint =
                 new ApiEndpoint();
@@ -70,6 +76,7 @@ class DefaultAiScenarioGeneratorTest {
                         promptBuilder,
                         llmClient,
                         responseParser,
+                        schemaFilter,
                         expectedStatusResolver
                 );
 
@@ -136,6 +143,9 @@ class DefaultAiScenarioGeneratorTest {
         AiScenarioResponseParser responseParser =
                 new AiScenarioResponseParser();
 
+        AiScenarioSchemaFilter schemaFilter =
+                new AiScenarioSchemaFilter();
+
         ApiEndpoint endpoint =
                 new ApiEndpoint();
 
@@ -179,6 +189,7 @@ class DefaultAiScenarioGeneratorTest {
                         promptBuilder,
                         llmClient,
                         responseParser,
+                        schemaFilter,
                         expectedStatusResolver
                 );
 
@@ -207,6 +218,158 @@ class DefaultAiScenarioGeneratorTest {
 
         assertNull(
                 scenario.getExpectedStatusCode()
+        );
+
+        verify(
+                expectedStatusResolver
+        ).resolve(
+                endpoint,
+                "REJECT"
+        );
+    }
+
+    @Test
+    void shouldRemoveSchemaDerivedAiScenarioAndKeepSemanticScenario() {
+
+        AiScenarioPromptBuilder promptBuilder =
+                mock(AiScenarioPromptBuilder.class);
+
+        LlmClient llmClient =
+                mock(LlmClient.class);
+
+        AiExpectedStatusResolver expectedStatusResolver =
+                mock(AiExpectedStatusResolver.class);
+
+        AiScenarioResponseParser responseParser =
+                new AiScenarioResponseParser();
+
+        AiScenarioSchemaFilter schemaFilter =
+                new AiScenarioSchemaFilter();
+
+        ApiEndpoint endpoint =
+                new ApiEndpoint();
+
+        ApiRequestBodyField sourceAccount =
+                new ApiRequestBodyField(
+                        "sourceAccountId",
+                        "string",
+                        true,
+                        null
+                );
+
+        ApiRequestBodyField destinationAccount =
+                new ApiRequestBodyField(
+                        "destinationAccountId",
+                        "string",
+                        true,
+                        null
+                );
+
+        ApiRequestBodyField amount =
+                new ApiRequestBodyField(
+                        "amount",
+                        "integer",
+                        true,
+                        null
+                );
+
+        amount.setMinimum(
+                new BigDecimal("1")
+        );
+
+        ApiRequestBody requestBody =
+                new ApiRequestBody();
+
+        requestBody.setFields(
+                List.of(
+                        sourceAccount,
+                        destinationAccount,
+                        amount
+                )
+        );
+
+        endpoint.setRequestBody(
+                requestBody
+        );
+
+        when(
+                promptBuilder.build(endpoint)
+        ).thenReturn(
+                "prompt"
+        );
+
+        when(
+                llmClient.generate("prompt")
+        ).thenReturn(
+                """
+                [
+                  {
+                    "name": "Reject transfer to same account",
+                    "description": "Source and destination must differ",
+                    "type": "AI_EXECUTABLE",
+                    "expectedOutcome": "REJECT",
+                    "requestBody": {
+                      "sourceAccountId": "account-1",
+                      "destinationAccountId": "account-1",
+                      "amount": 100
+                    }
+                  },
+                  {
+                    "name": "Reject non-positive amount",
+                    "description": "Amount must be positive",
+                    "type": "AI_EXECUTABLE",
+                    "expectedOutcome": "REJECT",
+                    "requestBody": {
+                      "sourceAccountId": "account-1",
+                      "destinationAccountId": "account-2",
+                      "amount": 0
+                    }
+                  }
+                ]
+                """
+        );
+
+        when(
+                expectedStatusResolver.resolve(
+                        endpoint,
+                        "REJECT"
+                )
+        ).thenReturn(
+                null
+        );
+
+        DefaultAiScenarioGenerator generator =
+                new DefaultAiScenarioGenerator(
+                        promptBuilder,
+                        llmClient,
+                        responseParser,
+                        schemaFilter,
+                        expectedStatusResolver
+                );
+
+        List<TestScenario> scenarios =
+                generator.generateScenarios(
+                        endpoint
+                );
+
+        assertEquals(
+                1,
+                scenarios.size()
+        );
+
+        TestScenario scenario =
+                scenarios.get(0);
+
+        assertEquals(
+                "Reject transfer to same account",
+                scenario.getName()
+        );
+
+        assertEquals(
+                100,
+                scenario.getRequestPayload()
+                        .getFields()
+                        .get("amount")
         );
 
         verify(
