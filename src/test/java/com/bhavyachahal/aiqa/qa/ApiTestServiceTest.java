@@ -1,102 +1,167 @@
 package com.bhavyachahal.aiqa.qa;
 
+import com.bhavyachahal.aiqa.ai.HybridScenarioGenerator;
 import com.bhavyachahal.aiqa.qa.model.TestExecutionResult;
+import com.bhavyachahal.aiqa.qa.model.TestScenario;
 import com.bhavyachahal.aiqa.specification.model.ApiEndpoint;
-import com.bhavyachahal.aiqa.specification.model.ApiResponse;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpMethod;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestClient;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class ApiTestServiceTest {
 
     @Test
-    void shouldGenerateAndExecuteAllScenarios() {
+    void shouldExecuteDeterministicAndAiExecutableScenariosButSkipRecommendations() {
 
-        RestClient.Builder restClientBuilder =
-                RestClient.builder();
+        HybridScenarioGenerator scenarioGenerator =
+                mock(HybridScenarioGenerator.class);
 
-        MockRestServiceServer server =
-                MockRestServiceServer
-                        .bindTo(restClientBuilder)
-                        .build();
-
-        RestClient restClient =
-                restClientBuilder.build();
-
-        ApiTestExecutor executor =
-                new ApiTestExecutor(
-                        restClient,
-                        new ResponseValidator()
-                );
-
-        TestScenarioGenerator generator =
-                new TestScenarioGenerator();
-
-        ApiTestService service =
-                new ApiTestService(
-                        generator,
-                        executor
-                );
+        ApiTestExecutor testExecutor =
+                mock(ApiTestExecutor.class);
 
         ApiEndpoint endpoint =
                 new ApiEndpoint();
 
-        endpoint.setPath("/users");
-        endpoint.setMethod("GET");
+        String baseUrl =
+                "http://localhost:8080";
 
-        endpoint.setResponses(
+        TestScenario deterministicScenario =
+                new TestScenario(
+                        "Valid request",
+                        "Verify valid request",
+                        "POSITIVE"
+                );
+
+        deterministicScenario.setExpectedStatusCode(
+                "200"
+        );
+
+        TestScenario aiExecutableScenario =
+                new TestScenario(
+                        "Reject transfer to same account",
+                        "Source and destination must differ",
+                        "AI_EXECUTABLE"
+                );
+
+        aiExecutableScenario.setExpectedOutcome(
+                "REJECT"
+        );
+
+        TestScenario aiRecommendation =
+                new TestScenario(
+                        "Reject insufficient funds",
+                        "Requires account balance setup",
+                        "AI_RECOMMENDATION"
+                );
+
+        when(
+                scenarioGenerator.generateScenarios(
+                        endpoint
+                )
+        ).thenReturn(
                 List.of(
-                        new ApiResponse(
-                                "200",
-                                "Successful response",
-                                "application/json",
-                                null,
-                                null
-                        )
+                        deterministicScenario,
+                        aiExecutableScenario,
+                        aiRecommendation
                 )
         );
 
-        server.expect(
-                        requestTo("/users")
+        TestExecutionResult deterministicResult =
+                new TestExecutionResult(
+                        "Valid request",
+                        200,
+                        "200",
+                        "",
+                        true
+                );
+
+        TestExecutionResult aiExecutableResult =
+                new TestExecutionResult(
+                        "Reject transfer to same account",
+                        400,
+                        null,
+                        "",
+                        false
+                );
+
+        when(
+                testExecutor.execute(
+                        endpoint,
+                        deterministicScenario,
+                        baseUrl
                 )
-                .andExpect(
-                        method(HttpMethod.GET)
+        ).thenReturn(
+                deterministicResult
+        );
+
+        when(
+                testExecutor.execute(
+                        endpoint,
+                        aiExecutableScenario,
+                        baseUrl
                 )
-                .andRespond(
-                        withSuccess()
+        ).thenReturn(
+                aiExecutableResult
+        );
+
+        ApiTestService service =
+                new ApiTestService(
+                        scenarioGenerator,
+                        testExecutor
                 );
 
         List<TestExecutionResult> results =
-                service.executeEndpoint(endpoint);
+                service.executeEndpoint(
+                        endpoint,
+                        baseUrl
+                );
 
         assertEquals(
-                1,
+                2,
                 results.size()
         );
 
         assertEquals(
                 "Valid request",
-                results.get(0).getScenarioName()
+                results.get(0)
+                        .getScenarioName()
         );
 
         assertEquals(
-                200,
-                results.get(0).getActualStatusCode()
+                "Reject transfer to same account",
+                results.get(1)
+                        .getScenarioName()
         );
 
-        assertEquals(
-                true,
-                results.get(0).isSuccessful()
+        verify(
+                testExecutor
+        ).execute(
+                endpoint,
+                deterministicScenario,
+                baseUrl
         );
 
-        server.verify();
+        verify(
+                testExecutor
+        ).execute(
+                endpoint,
+                aiExecutableScenario,
+                baseUrl
+        );
+
+        verify(
+                testExecutor,
+                never()
+        ).execute(
+                endpoint,
+                aiRecommendation,
+                baseUrl
+        );
     }
 }

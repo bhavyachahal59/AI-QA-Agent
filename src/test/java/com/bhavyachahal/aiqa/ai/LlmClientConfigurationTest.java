@@ -7,16 +7,32 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 class LlmClientConfigurationTest {
 
     @Test
-    void shouldUseNoOpClientWhenApiKeyIsMissing() {
+    void shouldUseNoOpClientWhenAiIsDisabled() {
 
-        String originalApiKey =
+        LlmClientConfiguration configuration =
+                new LlmClientConfiguration();
+
+        LlmClient client =
+                configuration.llmClient(
+                        false
+                );
+
+        assertInstanceOf(
+                NoOpLlmClient.class,
+                client
+        );
+    }
+
+    @Test
+    void shouldUseNoOpClientWhenAiIsEnabledButApiKeyIsMissing() {
+
+        String apiKey =
                 System.getenv(
                         "OPENAI_API_KEY"
                 );
 
-        if (originalApiKey != null
-                && !originalApiKey.isBlank()) {
-
+        if (apiKey != null
+                && !apiKey.isBlank()) {
             return;
         }
 
@@ -24,7 +40,9 @@ class LlmClientConfigurationTest {
                 new LlmClientConfiguration();
 
         LlmClient client =
-                configuration.llmClient();
+                configuration.llmClient(
+                        true
+                );
 
         assertInstanceOf(
                 NoOpLlmClient.class,

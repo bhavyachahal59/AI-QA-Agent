@@ -5,3 +5,6 @@ spring:
   autoconfigure:
     exclude:
       - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
+
+  ai:
+    enabled: false

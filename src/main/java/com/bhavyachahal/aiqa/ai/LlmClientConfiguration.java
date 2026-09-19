@@ -2,6 +2,7 @@ package com.bhavyachahal.aiqa.ai;
 
 import com.openai.client.OpenAIClient;
 import com.openai.client.okhttp.OpenAIOkHttpClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -9,7 +10,13 @@ import org.springframework.context.annotation.Configuration;
 public class LlmClientConfiguration {
 
     @Bean
-    public LlmClient llmClient() {
+    public LlmClient llmClient(
+            @Value("${ai.enabled:false}")
+            boolean aiEnabled) {
+
+        if (!aiEnabled) {
+            return new NoOpLlmClient();
+        }
 
         String apiKey =
                 System.getenv(

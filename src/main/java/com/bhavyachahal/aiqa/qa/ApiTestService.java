@@ -1,5 +1,6 @@
 package com.bhavyachahal.aiqa.qa;
 
+import com.bhavyachahal.aiqa.ai.HybridScenarioGenerator;
 import com.bhavyachahal.aiqa.qa.model.TestExecutionResult;
 import com.bhavyachahal.aiqa.qa.model.TestScenario;
 import com.bhavyachahal.aiqa.specification.model.ApiEndpoint;
@@ -11,11 +12,11 @@ import java.util.List;
 @Service
 public class ApiTestService {
 
-    private final TestScenarioGenerator scenarioGenerator;
+    private final HybridScenarioGenerator scenarioGenerator;
     private final ApiTestExecutor testExecutor;
 
     public ApiTestService(
-            TestScenarioGenerator scenarioGenerator,
+            HybridScenarioGenerator scenarioGenerator,
             ApiTestExecutor testExecutor) {
 
         this.scenarioGenerator =
@@ -39,15 +40,20 @@ public class ApiTestService {
             String baseUrl) {
 
         List<TestScenario> scenarios =
-                scenarioGenerator.generate(
+                scenarioGenerator.generateScenarios(
                         endpoint
                 );
 
         List<TestExecutionResult> results =
                 new ArrayList<>();
 
-        for (TestScenario scenario :
-                scenarios) {
+        for (TestScenario scenario : scenarios) {
+
+            if ("AI_RECOMMENDATION".equals(
+                    scenario.getType())) {
+
+                continue;
+            }
 
             TestExecutionResult result =
                     testExecutor.execute(
