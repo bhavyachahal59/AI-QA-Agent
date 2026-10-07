@@ -14,6 +14,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import com.bhavyachahal.aiqa.ai.HybridScenarioGenerator;
 
 import java.time.Instant;
 import java.util.List;
@@ -36,6 +37,9 @@ class QaControllerTest {
 
     @MockitoBean
     private TestScenarioGenerator scenarioGenerator;
+
+    @MockitoBean
+    private HybridScenarioGenerator hybridScenarioGenerator;
 
     @MockitoBean
     private OpenApiSpecificationParser specificationParser;
@@ -186,7 +190,7 @@ class QaControllerTest {
         );
 
         when(
-                scenarioGenerator.generate(
+                hybridScenarioGenerator.generateScenarios(
                         any(ApiEndpoint.class)
                 )
         ).thenReturn(

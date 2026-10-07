@@ -10,6 +10,7 @@ import com.bhavyachahal.aiqa.qa.model.TestScenario;
 import com.bhavyachahal.aiqa.specification.model.ApiEndpoint;
 import com.bhavyachahal.aiqa.specification.model.ApiSpecification;
 import com.bhavyachahal.aiqa.specification.parser.OpenApiSpecificationParser;
+import com.bhavyachahal.aiqa.ai.HybridScenarioGenerator;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,14 +29,19 @@ public class QaController {
     private final TestScenarioGenerator scenarioGenerator;
     private final OpenApiSpecificationParser specificationParser;
     private final ApiTestService apiTestService;
+    private final HybridScenarioGenerator hybridScenarioGenerator;
 
     public QaController(
             TestScenarioGenerator scenarioGenerator,
+            HybridScenarioGenerator hybridScenarioGenerator,
             OpenApiSpecificationParser specificationParser,
             ApiTestService apiTestService) {
 
         this.scenarioGenerator =
                 scenarioGenerator;
+
+        this.hybridScenarioGenerator =
+                hybridScenarioGenerator;
 
         this.specificationParser =
                 specificationParser;
@@ -90,7 +96,7 @@ public class QaController {
                 endpoints) {
 
             scenarios.addAll(
-                    scenarioGenerator.generate(
+                    hybridScenarioGenerator.generateScenarios(
                             endpoint
                     )
             );

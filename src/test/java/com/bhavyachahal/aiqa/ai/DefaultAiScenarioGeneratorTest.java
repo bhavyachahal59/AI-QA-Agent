@@ -379,4 +379,62 @@ class DefaultAiScenarioGeneratorTest {
                 "REJECT"
         );
     }
+
+    @Test
+    void shouldReturnEmptyListWhenLlmClientFails() {
+
+        AiScenarioPromptBuilder promptBuilder =
+                mock(AiScenarioPromptBuilder.class);
+
+        LlmClient llmClient =
+                mock(LlmClient.class);
+
+        AiExpectedStatusResolver expectedStatusResolver =
+                mock(AiExpectedStatusResolver.class);
+
+        AiScenarioResponseParser responseParser =
+                new AiScenarioResponseParser();
+
+        AiScenarioSchemaFilter schemaFilter =
+                new AiScenarioSchemaFilter();
+
+        ApiEndpoint endpoint =
+                new ApiEndpoint();
+
+        endpoint.setMethod("POST");
+        endpoint.setPath("/payments");
+
+        when(
+                promptBuilder.build(endpoint)
+        ).thenReturn(
+                "prompt"
+        );
+
+        when(
+                llmClient.generate("prompt")
+        ).thenThrow(
+                new RuntimeException(
+                        "LLM service unavailable"
+                )
+        );
+
+        DefaultAiScenarioGenerator generator =
+                new DefaultAiScenarioGenerator(
+                        promptBuilder,
+                        llmClient,
+                        responseParser,
+                        schemaFilter,
+                        expectedStatusResolver
+                );
+
+        List<TestScenario> scenarios =
+                generator.generateScenarios(
+                        endpoint
+                );
+
+        assertEquals(
+                0,
+                scenarios.size()
+        );
+    }
 }

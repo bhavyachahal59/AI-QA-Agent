@@ -2,6 +2,8 @@ package com.bhavyachahal.aiqa.ai;
 
 import com.bhavyachahal.aiqa.qa.model.TestScenario;
 import com.bhavyachahal.aiqa.specification.model.ApiEndpoint;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -9,6 +11,11 @@ import java.util.List;
 @Service
 public class DefaultAiScenarioGenerator
         implements AiScenarioGenerator {
+
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(
+                    DefaultAiScenarioGenerator.class
+            );
 
     private final AiScenarioPromptBuilder promptBuilder;
     private final LlmClient llmClient;
@@ -35,40 +42,55 @@ public class DefaultAiScenarioGenerator
     public List<TestScenario> generateScenarios(
             ApiEndpoint endpoint) {
 
-        String prompt =
-                promptBuilder.build(endpoint);
+        try {
 
-        String response =
-                llmClient.generate(prompt);
+            String prompt =
+                    promptBuilder.build(endpoint);
 
-        List<TestScenario> parsedScenarios =
-                responseParser.parse(response);
+            String response =
+                    llmClient.generate(prompt);
 
-        List<TestScenario> scenarios =
-                schemaFilter.filter(
-                        endpoint,
-                        parsedScenarios
-                );
+            List<TestScenario> parsedScenarios =
+                    responseParser.parse(response);
 
-        for (TestScenario scenario : scenarios) {
-
-            if (!"AI_EXECUTABLE".equals(
-                    scenario.getType())) {
-
-                continue;
-            }
-
-            String expectedStatusCode =
-                    expectedStatusResolver.resolve(
+            List<TestScenario> scenarios =
+                    schemaFilter.filter(
                             endpoint,
-                            scenario.getExpectedOutcome()
+                            parsedScenarios
                     );
 
-            scenario.setExpectedStatusCode(
-                    expectedStatusCode
-            );
-        }
+            for (TestScenario scenario : scenarios) {
 
-        return scenarios;
+                if (!"AI_EXECUTABLE".equals(
+                        scenario.getType())) {
+
+                    continue;
+                }
+
+                String expectedStatusCode =
+                        expectedStatusResolver.resolve(
+                                endpoint,
+                                scenario.getExpectedOutcome()
+                        );
+
+                scenario.setExpectedStatusCode(
+                        expectedStatusCode
+                );
+            }
+
+            return scenarios;
+
+        } catch (Exception exception) {
+
+            LOGGER.warn(
+                    "AI scenario generation failed for {} {}. "
+                            + "Continuing without AI-generated scenarios.",
+                    endpoint.getMethod(),
+                    endpoint.getPath(),
+                    exception
+            );
+
+            return List.of();
+        }
     }
 }
