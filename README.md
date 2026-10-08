@@ -82,7 +82,24 @@ The AI QA Agent combines deterministic schema analysis with LLM-based reasoning 
                     PASS / FAIL / UNVERIFIED
 ```
 
----
+---### Detailed Architecture
+
+See the [System Architecture](docs/ARCHITECTURE.md) for the
+component diagram, execution flow, and design decisions.
+
+### Sample Execution Report
+
+See the [End-to-End Execution Report](docs/demo/sample-execution-report.json).
+
+The sample run executed 18 scenarios:
+- 15 passed
+- 0 failed
+- 3 unverified
+- 100% verified test pass rate
+
+The demo API maintains in-memory state. Restart the application
+before reproducing the sample report because test execution can
+create or delete users.
 
 ## Key Features
 
